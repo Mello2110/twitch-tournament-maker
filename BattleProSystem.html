@@ -1,0 +1,3670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, initial-scale=1.0">
+    <title>Battle Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <style>
+        :root {
+            --accent-hue: 40;
+            --accent-sat: 48%;
+            --accent-light: 54%;
+            --accent: hsl(var(--accent-hue), var(--accent-sat), var(--accent-light));
+            --accent-hover: hsl(var(--accent-hue), var(--accent-sat), calc(var(--accent-light) + 7%));
+            --accent-soft: hsla(var(--accent-hue), var(--accent-sat), var(--accent-light), 0.14);
+            --accent-border: hsla(var(--accent-hue), var(--accent-sat), var(--accent-light), 0.34);
+
+            --fighter2: #c95863;
+            --fighter2-soft: rgba(201, 88, 99, 0.16);
+            --fighter2-border: rgba(201, 88, 99, 0.45);
+
+            --bg-opacity: 1;
+            --surface-base: rgba(13, 16, 23, var(--bg-opacity));
+            --surface-panel: rgba(19, 23, 32, calc(var(--bg-opacity) * 0.94));
+            --surface-solid: #11151e;
+            --surface-solid-2: #181d29;
+            --surface-solid-3: #202736;
+
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.16);
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+
+            --success: #10b981;
+            --danger: #dc2626;
+            --danger-soft: rgba(220, 38, 38, 0.16);
+            --warning: #f59e0b;
+
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-display: 'Barlow Condensed', 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            background: transparent;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--surface-base);
+            color: var(--text-primary);
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            position: relative;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::selection { background: var(--accent-soft); color: var(--text-primary); }
+        button, input, select { font-family: inherit; }
+        button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .icon {
+            width: 16px; height: 16px;
+            stroke: currentColor; stroke-width: 1.75;
+            stroke-linecap: round; stroke-linejoin: round;
+            fill: none; flex-shrink: 0;
+        }
+        .icon-sm { width: 14px; height: 14px; }
+        .icon-lg { width: 24px; height: 24px; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.14); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
+
+        /* Main 1920x1080 Broadcast Layout */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+        }
+
+        /* Unified Header (48px) */
+        .unified-header {
+            width: 1920px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            background: var(--surface-panel);
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+        .header-left {
+            width: 1400px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .header-right {
+            width: 520px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 1px solid var(--border-subtle);
+            height: 100%;
+        }
+
+        .title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+        }
+        .mode-badge {
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            padding: 3px 10px;
+            border: 1px solid var(--accent-border);
+            border-radius: 999px;
+            background: var(--accent-soft);
+        }
+        .round-info {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+            margin-left: auto;
+        }
+
+        /* Connection Pill */
+        .connection-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .connection-pill:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--border-strong);
+        }
+        .connection-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
+        .connection-pill.connected .connection-dot { background: var(--success); }
+        .connection-pill.connecting .connection-dot { background: var(--warning); }
+        .connection-pill.disconnected .connection-dot { background: var(--danger); }
+
+        .timer-wrapper { display: flex; align-items: center; gap: 8px; }
+        .timer-label {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--text-muted);
+        }
+        .timer-display {
+            font-family: var(--font-display);
+            font-size: 28px; font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary);
+            min-width: 44px; text-align: right; line-height: 1;
+        }
+        .timer-display.finished { color: var(--text-muted); }
+
+        .header-icon-btn {
+            width: 30px; height: 30px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px; cursor: pointer;
+            color: var(--text-secondary);
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .header-icon-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border-color: var(--border-strong);
+        }
+        .header-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .header-icon-btn.paused {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent-border);
+        }
+
+        .mode-toggle {
+            display: flex; align-items: center; gap: 8px;
+            margin-left: 6px; padding-left: 12px;
+            border-left: 1px solid var(--border-subtle);
+        }
+        .toggle-label {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.06em; text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .toggle-switch {
+            position: relative; width: 38px; height: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px; border: 1px solid var(--border-strong);
+            cursor: pointer; transition: background 0.2s, border-color 0.2s; padding: 0;
+        }
+        .toggle-switch.active { background: var(--accent); border-color: var(--accent); }
+        .toggle-slider {
+            position: absolute; top: 2px; left: 2px;
+            width: 14px; height: 14px;
+            background: #ffffff; border-radius: 50%;
+            transition: transform 0.2s; pointer-events: none;
+        }
+        .toggle-switch.active .toggle-slider { transform: translateX(18px); }
+
+        /* Left: Battle Arena Section (1400x1032) */
+        .battle-section {
+            width: 1400px;
+            height: 1032px;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+            position: relative;
+        }
+
+        .arena {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--surface-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* KOTH View */
+        .koth-view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        .koth-view.hidden { display: none; }
+
+        .vs-display {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 32px;
+            min-height: 300px;
+        }
+
+        .fighter {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, opacity 0.25s, filter 0.25s;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            position: relative;
+        }
+        .fighter:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--border-subtle);
+        }
+        .fighter.winner {
+            background: var(--accent-soft);
+            border-color: var(--accent-border);
+        }
+        .fighter.loser {
+            opacity: 0.35;
+            filter: grayscale(0.65);
+        }
+
+        .fighter-tag {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            padding: 3px 12px;
+            border-radius: 999px;
+            margin-bottom: 14px;
+        }
+        .fighter-tag.f1 {
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid var(--accent-border);
+        }
+        .fighter-tag.f2 {
+            background: var(--fighter2-soft);
+            color: #fca5a5;
+            border: 1px solid var(--fighter2-border);
+        }
+
+        .fighter-image-wrap {
+            width: 240px;
+            height: 240px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--border-strong);
+            background: var(--surface-solid-2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .fighter:hover .fighter-image-wrap {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        #fighter2:hover .fighter-image-wrap {
+            border-color: var(--fighter2);
+        }
+        .fighter.winner .fighter-image-wrap {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft), 0 12px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .fighter-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .fighter-placeholder {
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fighter-name {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-top: 16px;
+            text-align: center;
+            max-width: 340px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .fighter-votes {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 8px;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        #fighter2 .fighter-votes { color: #fca5a5; }
+        .fighter-votes.visible { opacity: 1; }
+
+        .fighter-bar {
+            width: 240px;
+            height: 6px;
+            margin-top: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+        .fighter-bar.visible { opacity: 1; }
+        .fighter-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 999px;
+            transition: width 0.45s ease;
+            width: 0%;
+        }
+        #fighter2 .fighter-bar-fill { background: var(--fighter2); }
+
+        .vs-divider {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 130px;
+            flex-shrink: 0;
+        }
+        .vs-text {
+            font-family: var(--font-display);
+            font-size: 54px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.06em;
+            line-height: 1;
+        }
+        .vs-match-num {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        /* Empty Arena Banner */
+        .arena-empty-banner {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .arena-empty-banner.visible { display: flex; }
+
+        /* Waiting / Eliminated Queues */
+        .queue-section {
+            flex-shrink: 0;
+            border-top: 1px solid var(--border-subtle);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px 16px;
+            display: flex;
+            gap: 18px;
+            height: 136px;
+        }
+        .queue-box {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .queue-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .queue-count {
+            font-family: var(--font-display);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .queue-items {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .queue-item {
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-strong);
+            background: var(--surface-solid-2);
+            position: relative;
+        }
+        .queue-item.eliminated {
+            opacity: 0.38;
+            filter: grayscale(0.75);
+            border-color: rgba(220, 38, 38, 0.35);
+        }
+        .queue-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .queue-item-name {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            font-size: 9px;
+            font-weight: 500;
+            text-align: center;
+            background: rgba(10, 12, 18, 0.88);
+            color: var(--text-primary);
+            padding: 2px 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* ==========================================
+           BRACKET VIEW — Bottom-to-Top Tree
+           ========================================== */
+        .bracket-view {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+            padding: 14px 12px;
+        }
+        .bracket-view.active { display: flex; }
+
+        .bracket-round-row {
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 100%;
+        }
+        .bracket-match-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            padding: 2px;
+        }
+
+        .match-card {
+            width: 100%;
+            max-width: 132px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 5px;
+            overflow: hidden;
+            background: var(--surface-solid-2);
+            transition: border-color 0.2s, opacity 0.2s;
+        }
+        .match-card.active-card {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-soft);
+        }
+        .match-card.completed-card { opacity: 0.72; }
+        .match-card.bye-card { opacity: 0.35; }
+
+        .match-card-slot {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 6px;
+            min-height: 24px;
+        }
+        .match-card-slot + .match-card-slot {
+            border-top: 1px solid var(--border-subtle);
+        }
+        .match-card-slot.mc-winner {
+            background: var(--accent-soft);
+        }
+        .match-card-slot.mc-loser {
+            opacity: 0.35;
+            filter: grayscale(0.65);
+        }
+        .mc-img {
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .mc-name {
+            font-size: 10px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            line-height: 1.1;
+        }
+        .mc-score {
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            min-width: 12px;
+            text-align: right;
+        }
+        .mc-winner .mc-score { color: var(--accent); }
+        .mc-bye {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 1px 2px;
+        }
+
+        .round-label-side {
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            min-width: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            flex-shrink: 0;
+        }
+        .round-label-side.active-round { color: var(--accent); }
+
+        .finals-row .match-card {
+            max-width: 260px;
+            border-color: var(--accent-border);
+            background: var(--surface-solid-3);
+        }
+        .finals-row .match-card-slot { min-height: 36px; padding: 6px 10px; }
+        .finals-row .mc-img { width: 26px; height: 26px; border-radius: 4px; }
+        .finals-row .mc-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+        .finals-row .mc-score { font-size: 15px; }
+
+        .semi-row .match-card {
+            max-width: 190px;
+            border-color: var(--border-strong);
+        }
+        .semi-row .match-card-slot { min-height: 30px; padding: 4px 8px; }
+        .semi-row .mc-img { width: 22px; height: 22px; }
+        .semi-row .mc-name { font-size: 11px; }
+        .semi-row .mc-score { font-size: 13px; }
+
+        .champion-frame {
+            display: flex;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 6px 0 8px;
+            opacity: 0.45;
+            transform: scale(0.95);
+            transition: opacity 0.6s ease, transform 0.5s ease;
+        }
+        .champion-frame.revealed {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .champion-frame-inner {
+            position: relative;
+            width: 84px;
+            height: 84px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .champion-frame-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 20px var(--accent-soft);
+            position: relative;
+            z-index: 2;
+        }
+        .champion-frame-name {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .champion-wreath {
+            position: absolute;
+            top: -10px; left: -10px;
+            width: 104px; height: 104px;
+            z-index: 1;
+        }
+
+        .bracket-connectors {
+            display: flex;
+            justify-content: center;
+            height: 10px;
+            flex-shrink: 0;
+        }
+
+        /* Integrated Hotkeys Bar */
+        .hotkeys {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            padding: 8px 12px;
+            background: var(--surface-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+        }
+        .hotkey { display: inline-flex; align-items: center; gap: 6px; }
+        .hotkey-key {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Right: Voting + Chat Section (520x1032) */
+        .voting-section {
+            width: 520px;
+            height: 1032px;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border-subtle);
+            background: var(--surface-panel);
+        }
+        .voting-container {
+            height: 468px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .matchup-preview {
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+        .matchup-fighters {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+        }
+        .matchup-thumb-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--surface-solid-2);
+            border: 2px solid var(--border-strong);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        .matchup-thumb-wrap.left { border-color: var(--accent); }
+        .matchup-thumb-wrap.right { border-color: var(--fighter2); }
+        .matchup-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .matchup-vs {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.06em;
+        }
+        .matchup-names {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .matchup-name {
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chart-container { flex: 1; padding: 12px 18px 8px; min-height: 0; position: relative; }
+        .chart-wrapper { height: 100%; position: relative; }
+
+        .vote-ticker {
+            position: absolute;
+            top: 8px;
+            right: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 3px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .vote-tick {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: rgba(17, 21, 30, 0.85);
+            border: 1px solid var(--border-subtle);
+            padding: 2px 8px;
+            border-radius: 999px;
+            animation: tickIn 0.2s ease-out;
+        }
+        @keyframes tickIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-section {
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.02);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 10px; align-items: center; }
+        .stat-item { text-align: center; min-width: 0; }
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 24px; font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-primary); line-height: 1.15; margin-bottom: 2px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .stat-label {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+        }
+
+        .controls { padding: 10px 18px; display: flex; gap: 10px; flex-shrink: 0; }
+        .btn {
+            flex: 1; padding: 10px 14px; border-radius: 6px;
+            font-size: 13px; font-weight: 600;
+            letter-spacing: 0.04em; text-transform: uppercase;
+            cursor: pointer; transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-start { background: var(--accent); border: 1px solid var(--accent); color: #090d12; }
+        .btn-start:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+        .btn-start:disabled {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--border-subtle); color: var(--text-muted); cursor: not-allowed;
+        }
+        .btn-reset { background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-strong); color: var(--text-primary); }
+        .btn-reset:hover { background: rgba(255, 255, 255, 0.1); }
+
+        /* Control Panel (44px) */
+        .control-panel {
+            height: 44px; flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.25);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; padding: 0 14px;
+        }
+        .ctrl-btn {
+            height: 30px; min-width: 44px; padding: 0 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); border-radius: 5px;
+            cursor: pointer; font-size: 12px; font-weight: 600;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+        }
+        .ctrl-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-primary); border-color: var(--border-strong);
+        }
+        .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .ctrl-btn.vote-1 {
+            font-family: var(--font-display);
+            font-size: 15px; font-weight: 700; min-width: 68px;
+            background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent);
+        }
+        .ctrl-btn.vote-1:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); color: #090d12; }
+        .ctrl-btn.vote-2 {
+            font-family: var(--font-display);
+            font-size: 15px; font-weight: 700; min-width: 68px;
+            background: var(--fighter2-soft); border-color: var(--fighter2-border); color: #fca5a5;
+        }
+        .ctrl-btn.vote-2:hover:not(:disabled) { background: var(--fighter2); border-color: var(--fighter2); color: #ffffff; }
+        .ctrl-btn.skip-btn { background: var(--danger-soft); border-color: rgba(220, 38, 38, 0.35); color: #fca5a5; }
+        .ctrl-btn.skip-btn:hover:not(:disabled) { background: var(--danger); border-color: var(--danger); color: #ffffff; }
+        .ctrl-spacer { flex: 1; }
+
+        /* Chat Space (OBS 520x520 - never covered by overlays) */
+        .chat-space {
+            height: 520px; flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.14);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .chat-placeholder {
+            font-size: 12px; font-weight: 500;
+            color: var(--text-muted); text-align: center;
+            padding: 8px 14px; border: 1px dashed var(--border-subtle); border-radius: 6px;
+        }
+        .chat-space.hidden-guide .chat-placeholder { display: none; }
+
+        /* ==========================================
+           SETTINGS DRAWER (Tabbed, Sticky Header/Footer)
+           ========================================== */
+        .settings-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1990; opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        .settings-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .settings-panel {
+            position: fixed; top: 0; right: -680px;
+            width: 680px; height: 100vh; max-height: 1080px;
+            background: var(--surface-solid);
+            border-left: 1px solid var(--border-strong);
+            z-index: 2000;
+            transition: right 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+            box-shadow: -8px 0 32px rgba(0, 0, 0, 0.6);
+        }
+        .settings-panel.open { right: 0; }
+
+        .settings-header {
+            background: var(--surface-solid-2);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .settings-title {
+            font-family: var(--font-display);
+            font-size: 22px; font-weight: 700;
+            letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-primary);
+        }
+        .close-settings {
+            width: 32px; height: 32px;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px; color: var(--text-secondary); cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .close-settings:hover { background: rgba(255, 255, 255, 0.12); color: var(--text-primary); }
+
+        .settings-tabs {
+            display: flex; gap: 4px; padding: 10px 20px 0;
+            background: var(--surface-solid-2);
+            border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;
+        }
+        .settings-tab {
+            padding: 9px 13px; background: transparent;
+            border: none; border-bottom: 2px solid transparent;
+            color: var(--text-muted); font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: color 0.15s, border-color 0.15s, background 0.15s;
+            border-radius: 6px 6px 0 0;
+        }
+        .settings-tab:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.04); }
+        .settings-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--accent);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .settings-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .settings-tab-pane { display: none; }
+        .settings-tab-pane.active { display: block; }
+
+        .settings-section {
+            margin-bottom: 24px; padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .settings-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .section-title {
+            font-size: 12px; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--text-muted); margin-bottom: 14px;
+        }
+
+        .settings-footer {
+            padding: 14px 20px; background: var(--surface-solid-2);
+            border-top: 1px solid var(--border-subtle);
+            display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+        }
+        .settings-footer-meta { font-size: 12px; color: var(--text-muted); margin-right: auto; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group:last-child { margin-bottom: 0; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-label {
+            font-size: 13px; font-weight: 500;
+            color: var(--text-secondary); margin-bottom: 6px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+        .form-input {
+            width: 100%; background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-strong); border-radius: 6px;
+            color: var(--text-primary); font-size: 14px; padding: 9px 12px;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .form-input::placeholder { color: var(--text-muted); opacity: 0.7; }
+        .form-input:focus { outline: none; border-color: var(--accent); background: rgba(255, 255, 255, 0.07); }
+        select.form-input { background: var(--surface-solid-2); cursor: pointer; }
+
+        .checkbox-label {
+            display: flex; align-items: flex-start; gap: 10px; cursor: pointer;
+            padding: 10px 12px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle); border-radius: 6px;
+        }
+        .checkbox-label input[type="checkbox"] {
+            margin-top: 2px; width: 16px; height: 16px;
+            accent-color: var(--accent); cursor: pointer;
+        }
+        .checkbox-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+        .checkbox-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        .radio-group { display: flex; flex-direction: column; gap: 8px; }
+        .radio-option {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle); border-radius: 6px;
+            cursor: pointer; transition: background 0.15s, border-color 0.15s;
+        }
+        .radio-option:hover { background: rgba(255, 255, 255, 0.06); border-color: var(--border-strong); }
+        .radio-option input[type="radio"] { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+        .radio-label { font-size: 13px; font-weight: 500; color: var(--text-primary); cursor: pointer; flex: 1; }
+        .radio-desc { font-size: 12px; color: var(--text-muted); font-weight: 400; margin-top: 2px; }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--accent); border: 1px solid var(--accent); color: #090d12;
+            padding: 10px 16px; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            transition: background 0.15s;
+        }
+        .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-strong); color: var(--text-primary);
+            padding: 10px 16px; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+
+        .btn-danger {
+            background: var(--danger-soft); border: 1px solid rgba(220, 38, 38, 0.45); color: #fecaca;
+            padding: 10px 16px; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .btn-danger:hover, .btn-danger.confirming {
+            background: var(--danger); border-color: #fca5a5; color: #ffffff;
+        }
+
+        .btn-icon {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); width: 32px; height: 32px; border-radius: 6px;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+        .btn-icon:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.12); color: var(--text-primary); border-color: var(--border-strong);
+        }
+        .btn-icon:disabled { opacity: 0.3; cursor: not-allowed; }
+        .btn-icon.delete:hover:not(:disabled) {
+            background: var(--danger-soft); border-color: rgba(220, 38, 38, 0.5); color: #fca5a5;
+        }
+
+        .btn-add {
+            background: var(--accent); border: 1px solid var(--accent); color: #090d12;
+            padding: 9px 16px; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 600;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            transition: background 0.15s;
+        }
+        .btn-add:hover { background: var(--accent-hover); }
+
+        .btn-small {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); padding: 5px 10px; border-radius: 4px;
+            cursor: pointer; font-size: 12px; font-weight: 500;
+            transition: background 0.15s, color 0.15s;
+        }
+        .btn-small:hover { background: rgba(255, 255, 255, 0.12); color: var(--text-primary); }
+
+        /* Criteria, Upload, Items */
+        .criteria-list { margin-top: 10px; }
+        .criterion-item {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            padding: 8px 10px; border-radius: 6px;
+        }
+        .criterion-number { font-size: 12px; font-weight: 600; color: var(--text-muted); min-width: 18px; }
+        .criterion-input { flex: 1; background: transparent; border: none; color: var(--text-primary); font-size: 13px; padding: 4px; }
+        .criterion-input:focus { outline: none; }
+        .add-criterion-btn {
+            width: 100%; background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed var(--border-strong); color: var(--text-secondary);
+            padding: 9px; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 500; margin-top: 8px;
+        }
+        .add-criterion-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.07); color: var(--text-primary); }
+        .add-criterion-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .criteria-counter { font-size: 12px; color: var(--text-muted); margin-top: 6px; text-align: right; }
+
+        .upload-area {
+            border: 1px dashed var(--border-strong); border-radius: 8px;
+            padding: 24px 20px; text-align: center; cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .upload-area:hover, .upload-area.dragover { border-color: var(--accent); background: var(--accent-soft); }
+        .upload-icon { color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: center; }
+        .upload-text { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+
+        .upload-table { margin-top: 14px; display: none; }
+        .upload-table.active { display: block; }
+        .upload-quick-actions { margin-bottom: 10px; display: flex; gap: 8px; }
+        .upload-item {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            padding: 10px; border-radius: 6px; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .upload-preview { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border-subtle); }
+        .upload-info { flex: 1; min-width: 0; }
+        .upload-filename { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .upload-name-input {
+            width: 100%; background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-strong); border-radius: 4px;
+            color: var(--text-primary); font-size: 13px; padding: 6px 8px;
+        }
+        .upload-actions { display: flex; gap: 6px; flex-direction: column; }
+
+        .items-toolbar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .item-list { max-height: 330px; overflow-y: auto; }
+        .settings-item {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            padding: 7px 10px; border-radius: 6px; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .item-thumb { width: 40px; height: 40px; border-radius: 5px; object-fit: cover; border: 1px solid var(--border-subtle); flex-shrink: 0; }
+        .item-inline-name {
+            flex: 1; background: transparent; border: 1px solid transparent;
+            border-radius: 4px; color: var(--text-primary); font-size: 13px; padding: 5px 8px;
+        }
+        .item-inline-name:hover { border-color: var(--border-subtle); }
+        .item-inline-name:focus { outline: none; background: rgba(255, 255, 255, 0.06); border-color: var(--accent); }
+
+        .info-callout {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-subtle);
+            border-radius: 6px; padding: 12px 14px; font-size: 12px;
+            color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;
+        }
+        .info-callout strong { color: var(--text-primary); }
+
+        .swatch-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+        .swatch-btn {
+            width: 28px; height: 28px; border-radius: 6px;
+            border: 2px solid transparent; cursor: pointer;
+            transition: transform 0.12s, border-color 0.12s;
+        }
+        .swatch-btn:hover { transform: scale(1.08); border-color: #ffffff; }
+
+        .slider-input {
+            width: 100%; height: 6px; border-radius: 3px; outline: none;
+            -webkit-appearance: none; background: rgba(255, 255, 255, 0.12);
+        }
+        .slider-input::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px;
+            border-radius: 50%; background: #ffffff; cursor: pointer;
+        }
+
+        /* Modals */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78);
+            display: none; align-items: center; justify-content: center; z-index: 3500;
+        }
+        .modal-backdrop.active { display: flex; }
+        .modal-card {
+            background: var(--surface-solid-2); border: 1px solid var(--border-strong);
+            border-radius: 10px; padding: 24px; width: 440px; max-width: 92vw;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+        }
+        .modal-title {
+            font-family: var(--font-display); font-size: 20px; font-weight: 700;
+            letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-primary); margin-bottom: 16px;
+        }
+
+        .token-help-btn {
+            background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); font-size: 11px; font-weight: 600;
+            padding: 2px 7px; border-radius: 4px; cursor: pointer; margin-left: auto;
+        }
+        .token-help-btn:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.12); }
+        .token-help-steps { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+        .token-help-steps ol { margin-left: 18px; margin-bottom: 12px; }
+        .token-help-steps a { color: var(--accent); text-decoration: none; }
+        .token-help-steps a:hover { text-decoration: underline; }
+
+        /* ==========================================
+           ON-STREAM OVERLAYS (Scoped to Left 1400x1032 so Chat Space 520x520 stays visible!)
+           ========================================== */
+        .pause-overlay, .result-overlay, .champion-overlay {
+            position: fixed;
+            top: 48px;
+            left: 0;
+            width: 1400px;
+            height: 1032px;
+            background: rgba(11, 14, 20, 0.92);
+            backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .pause-overlay { z-index: 1500; }
+        .result-overlay { z-index: 1600; }
+        .champion-overlay { z-index: 1700; }
+        .pause-overlay.active, .result-overlay.active, .champion-overlay.active { display: flex; }
+
+        .pause-content, .result-message, .champion-message {
+            text-align: center;
+            max-width: 660px;
+            width: 90%;
+            background: var(--surface-solid);
+            border: 1px solid var(--border-strong);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .pause-matchup {
+            display: flex; align-items: center; justify-content: center; gap: 28px;
+            margin-bottom: 22px;
+        }
+        .pause-fighter { text-align: center; max-width: 220px; }
+        .pause-fighter-image {
+            width: 144px; height: 144px; border-radius: 10px;
+            object-fit: cover; border: 2px solid var(--border-strong);
+            background: var(--surface-solid-2);
+        }
+        .pause-fighter-image.left { border-color: var(--accent); }
+        .pause-fighter-image.right { border-color: var(--fighter2); }
+        .pause-fighter-name {
+            font-family: var(--font-display); font-size: 20px;
+            font-weight: 700; color: var(--text-primary); letter-spacing: 0.04em;
+            margin-top: 10px; text-transform: uppercase;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .pause-vs {
+            font-family: var(--font-display); font-size: 38px;
+            font-weight: 700; color: var(--accent);
+        }
+        .pause-criteria {
+            background: var(--surface-solid-2); border: 1px solid var(--border-subtle);
+            border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; text-align: left;
+        }
+        .pause-criteria-title {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
+        }
+        .pause-criterion { font-size: 14px; color: var(--text-secondary); line-height: 1.65; padding-left: 14px; position: relative; }
+        .pause-criterion::before {
+            content: ''; position: absolute; left: 0; top: 9px;
+            width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+        }
+        .pause-title {
+            font-size: 12px; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+        }
+        .pause-timer {
+            font-family: var(--font-display); font-size: 54px; font-weight: 700;
+            font-variant-numeric: tabular-nums; color: var(--text-primary); margin-bottom: 20px;
+        }
+        .pause-skip {
+            background: var(--accent); border: none; color: #090d12;
+            padding: 11px 26px; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+        }
+        .pause-skip:hover { background: var(--accent-hover); }
+
+        /* Result Overlay */
+        .result-title {
+            font-family: var(--font-display); font-size: 42px; font-weight: 700;
+            letter-spacing: 0.06em; color: var(--accent); text-transform: uppercase; margin-bottom: 12px;
+        }
+        .result-fighters {
+            display: flex; align-items: center; justify-content: center;
+            gap: 24px; margin: 16px 0;
+        }
+        .result-fighter-img {
+            width: 120px; height: 120px; border-radius: 10px;
+            object-fit: cover; transition: transform 0.6s ease, opacity 0.6s ease, filter 0.6s ease;
+            border: 2px solid var(--border-strong);
+        }
+        .result-fighter-img.winner-anim {
+            transform: scale(1.16);
+            border-color: var(--accent);
+            box-shadow: 0 0 28px var(--accent-soft);
+        }
+        .result-fighter-img.loser-anim {
+            transform: scale(0.84);
+            opacity: 0.35;
+            filter: grayscale(0.75);
+        }
+        .result-fighter-label {
+            font-family: var(--font-display); font-size: 15px; font-weight: 600;
+            letter-spacing: 0.05em; text-transform: uppercase; margin-top: 12px;
+        }
+        .result-fighter-label.winner-label { color: var(--accent); }
+        .result-fighter-label.loser-label { color: var(--text-muted); }
+        .result-score {
+            font-family: var(--font-display); font-size: 56px; font-weight: 700;
+            font-variant-numeric: tabular-nums; color: var(--text-primary); margin: 8px 0 4px;
+        }
+        .result-detail { font-size: 13px; color: var(--text-secondary); }
+
+        /* Champion Overlay */
+        .champion-title {
+            font-family: var(--font-display); font-size: 56px; font-weight: 700;
+            letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase; margin-bottom: 18px;
+        }
+        .champion-image {
+            width: 220px; height: 220px; border-radius: 12px;
+            object-fit: cover; margin: 0 auto 18px; display: block;
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 36px var(--accent-soft);
+        }
+        .champion-name {
+            font-family: var(--font-display); font-size: 32px; font-weight: 700;
+            color: var(--text-primary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .champion-stats { font-size: 15px; color: var(--text-secondary); margin-bottom: 24px; }
+        .champion-actions { display: flex; gap: 12px; justify-content: center; }
+
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 24px; left: 24px;
+            background: var(--surface-solid-3); border: 1px solid var(--border-strong);
+            color: var(--text-primary); padding: 10px 18px; border-radius: 6px;
+            font-size: 13px; font-weight: 500; opacity: 0; transform: translateY(12px);
+            transition: opacity 0.2s, transform 0.2s; z-index: 10000; pointer-events: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="settings-backdrop" id="settingsBackdrop" onclick="toggleSettings(false)"></div>
+
+    <aside class="settings-panel" id="settingsPanel" aria-label="Settings">
+        <div class="settings-header">
+            <div class="settings-title" data-i18n="settingsTitle">Settings</div>
+            <button type="button" class="close-settings" onclick="toggleSettings(false)" aria-label="Close settings">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <nav class="settings-tabs" role="tablist">
+            <button type="button" class="settings-tab active" data-tab="twitch" onclick="switchSettingsTab('twitch')" role="tab" aria-selected="true" data-i18n="tabTwitch">Twitch &amp; Setup</button>
+            <button type="button" class="settings-tab" data-tab="items" onclick="switchSettingsTab('items')" role="tab" aria-selected="false" data-i18n="tabItems">Items</button>
+            <button type="button" class="settings-tab" data-tab="mode" onclick="switchSettingsTab('mode')" role="tab" aria-selected="false" data-i18n="tabMode">Mode &amp; Voting</button>
+            <button type="button" class="settings-tab" data-tab="design" onclick="switchSettingsTab('design')" role="tab" aria-selected="false" data-i18n="tabDesign">Design &amp; OBS</button>
+            <button type="button" class="settings-tab" data-tab="data" onclick="switchSettingsTab('data')" role="tab" aria-selected="false" data-i18n="tabBackup">Backup</button>
+        </nav>
+
+        <div class="settings-content">
+            <!-- TAB 1: TWITCH & SETUP -->
+            <div class="settings-tab-pane active" id="tab-twitch">
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secTwitch">Twitch Chat Connection</div>
+                    <div class="form-group">
+                        <label class="form-label" for="settingChannel" data-i18n="lblChannel">Channel Name</label>
+                        <input type="text" class="form-input" id="settingChannel" placeholder="your_channel_name" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="settingToken">
+                            <span data-i18n="lblToken">OAuth Token</span>
+                            <button type="button" class="token-help-btn" onclick="openTokenHelper()" data-i18n="btnTokenHelp">How to get token?</button>
+                        </label>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <input type="password" class="form-input" id="settingToken" placeholder="oauth token" style="flex:1;" autocomplete="off">
+                            <button type="button" class="btn-icon" onclick="toggleTokenVisibility()" title="Show/Hide token" aria-label="Show or hide token">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        <div class="form-hint" data-i18n="hintToken">Saved locally in OBS browser cache. Only chat:read scope is required.</div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secStreamTiming">Stream, Timing &amp; Language</div>
+                    <div class="form-row-2 form-group">
+                        <div>
+                            <label class="form-label" for="settingTitle" data-i18n="lblTitle">Battle Title</label>
+                            <input type="text" class="form-input" id="settingTitle" value="BATTLE">
+                        </div>
+                        <div>
+                            <label class="form-label" for="settingLanguage" data-i18n="lblLanguage">Language</label>
+                            <select class="form-input" id="settingLanguage" onchange="instantSaveSetting('language', this.value)">
+                                <option value="en">English</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label" for="settingVoteDuration" data-i18n="lblVoteDuration">Voting Duration (sec)</label>
+                            <input type="number" class="form-input" id="settingVoteDuration" value="30" min="5" max="300">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="settingPauseDuration" data-i18n="lblPauseDuration">Pause Between (sec)</label>
+                            <input type="number" class="form-input" id="settingPauseDuration" value="15" min="0" max="300">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: ITEMS -->
+            <div class="settings-tab-pane" id="tab-items">
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secAddImages">Add Images (IndexedDB — unlimited storage)</div>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        </div>
+                        <div class="upload-text" data-i18n="uploadPrompt">Drag &amp; drop images here, or click to select files</div>
+                        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div class="upload-table" id="uploadTable"></div>
+                </div>
+
+                <div class="settings-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div class="section-title" style="margin-bottom: 0;"><span data-i18n="secLoadedItems">Loaded Items</span> (<span id="itemCount">0</span>)</div>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" class="btn-small" onclick="shuffleAndRestart()" data-i18n="btnShuffleStart">Shuffle &amp; Start</button>
+                            <button type="button" class="btn-danger" id="clearAllItemsBtn" onclick="confirmAction(this, clearAllItems)" style="padding: 5px 10px; font-size: 12px;" data-i18n="btnClearAll">Clear All</button>
+                        </div>
+                    </div>
+                    <div class="items-toolbar">
+                        <input type="text" class="form-input" id="itemSearchInput" placeholder="Filter items..." oninput="renderSettingsItems()" style="padding: 7px 10px; font-size: 13px;">
+                    </div>
+                    <div class="item-list" id="itemsList"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: MODE & VOTING -->
+            <div class="settings-tab-pane" id="tab-mode">
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secGameMode">Game Mode</div>
+                    <div class="form-group">
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="gameMode" value="koth" checked onchange="changeGameMode(this.value)">
+                                <div class="radio-label">
+                                    <div data-i18n="modeKoth">King of the Hill</div>
+                                    <div class="radio-desc" data-i18n="modeKothDesc">Winner stays, challengers rotate. Last one standing wins.</div>
+                                </div>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="gameMode" value="tournament" onchange="changeGameMode(this.value)">
+                                <div class="radio-label">
+                                    <div data-i18n="modeTournament">Tournament Bracket</div>
+                                    <div class="radio-desc" data-i18n="modeTournamentDesc">Single elimination bracket. Items are paired randomly.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secChatBehavior">Chat &amp; Moderation</div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="allowTextAfterCmdCheckbox" checked onchange="instantSaveSetting('allowTextAfterCmd', this.checked)">
+                            <div>
+                                <div class="checkbox-title" data-i18n="chkTextAfterCmd">Allow text after command</div>
+                                <div class="checkbox-desc" data-i18n="chkTextAfterCmdDesc">Counts "!1 easy win" as a valid !1 vote.</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="modCommandsCheckbox" checked onchange="instantSaveSetting('modCommands', this.checked)">
+                            <div>
+                                <div class="checkbox-title" data-i18n="chkModCmd">Enable Broadcaster &amp; Mod chat commands</div>
+                                <div class="checkbox-desc" data-i18n="chkModCmdDesc">Allows !battle start, !battle pause, !battle next, !battle skip, !battle reset in Twitch chat.</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secCriteria">Voting Criteria (Pause Screen)</div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="criteriaEnabledCheckbox" checked onchange="instantSaveSetting('criteriaEnabled', this.checked)">
+                            <div>
+                                <div class="checkbox-title" data-i18n="chkCriteria">Show criteria during pause</div>
+                                <div class="checkbox-desc" data-i18n="chkCriteriaDesc">Displays battle criteria before each voting round.</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="criteria-list" id="criteriaList"></div>
+                    <button type="button" class="add-criterion-btn" id="addCriterionBtn" onclick="addCriterion()" data-i18n="btnAddCriterion">+ Add Criterion</button>
+                    <div class="criteria-counter" id="criteriaCounter">0/7</div>
+                </div>
+            </div>
+
+            <!-- TAB 4: DESIGN & OBS -->
+            <div class="settings-tab-pane" id="tab-design">
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secDisplay">Display</div>
+                    <div class="form-group">
+                        <label class="form-label" data-i18n="lblDisplay">Label Display</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="labelMode" value="labels" checked onchange="instantSaveSetting('showLabels', true)">
+                                <div class="radio-label">
+                                    <div data-i18n="lblShowLabels">Show Labels</div>
+                                    <div class="radio-desc" data-i18n="lblShowLabelsDesc">Display item names below images</div>
+                                </div>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="labelMode" value="icons" onchange="instantSaveSetting('showLabels', false)">
+                                <div class="radio-label">
+                                    <div data-i18n="lblIconsOnly">Icons Only</div>
+                                    <div class="radio-desc" data-i18n="lblIconsOnlyDesc">Hide text labels for full-bleed images</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secOverlay">OBS Overlay, Audio &amp; Theme</div>
+                    <div class="form-group">
+                        <label class="form-label" for="bgOpacitySlider" data-i18n="lblBgOpacity">Background Opacity</label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="range" class="slider-input" id="bgOpacitySlider" min="0" max="100" value="100" oninput="applyAppearance()">
+                            <span id="bgOpacityValue" style="font-family: var(--font-display); font-size: 16px; font-weight: 600; min-width: 44px; text-align: right;">100%</span>
+                        </div>
+                        <div class="form-hint" data-i18n="hintBgOpacity">Set to 0% for transparent OBS overlay over your stream scene.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="accentHueSlider" data-i18n="lblAccent">Accent Color</label>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <input type="range" class="slider-input" id="accentHueSlider" min="0" max="360" value="40"
+                                style="background: linear-gradient(to right, #9e4b52, #b87c44, #c29b50, #7c9468, #5d9484, #637fa0, #8a6c94, #9e4b52);"
+                                oninput="applyAppearance()">
+                            <div id="accentPreview" style="width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border-strong); flex-shrink: 0;"></div>
+                        </div>
+                        <div class="swatch-row">
+                            <button type="button" class="swatch-btn" style="background:#c29b50;" onclick="setAccentPreset(40, 48, 54)" title="Antique Gold"></button>
+                            <button type="button" class="swatch-btn" style="background:#cab896;" onclick="setAccentPreset(38, 36, 68)" title="Warm Cream"></button>
+                            <button type="button" class="swatch-btn" style="background:#ba6d4e;" onclick="setAccentPreset(18, 45, 52)" title="Smoked Copper"></button>
+                            <button type="button" class="swatch-btn" style="background:#b34250;" onclick="setAccentPreset(352, 46, 48)" title="Vintage Crimson"></button>
+                            <button type="button" class="swatch-btn" style="background:#5d987a;" onclick="setAccentPreset(150, 24, 48)" title="Muted Sage"></button>
+                            <button type="button" class="swatch-btn" style="background:#6f8cad;" onclick="setAccentPreset(212, 28, 56)" title="Slate Steel"></button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showChatGuideCheckbox" onchange="instantSaveSetting('showChatGuide', this.checked)">
+                            <div>
+                                <div class="checkbox-title" data-i18n="chkChatGuide">Show "Chat Space (520×520)" alignment label</div>
+                                <div class="checkbox-desc" data-i18n="chkChatGuideDesc">Turn off once your OBS chat overlay is positioned.</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showVoteTickerCheckbox" checked onchange="instantSaveSetting('showVoteTicker', this.checked)">
+                            <div>
+                                <div class="checkbox-title" data-i18n="chkTicker">Show live vote ticker</div>
+                                <div class="checkbox-desc" data-i18n="chkTickerDesc">Displays recent chat votes briefly in the chart corner.</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="soundEnabledCheckbox" onchange="instantSaveSetting('soundEnabled', this.checked)">
+                            <div>
+                                <div class="checkbox-title" data-i18n="chkSound">Enable subtle audio cues</div>
+                                <div class="checkbox-desc" data-i18n="chkSoundDesc">Plays a soft tick in the last 3 seconds and on completion.</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: BACKUP & RESET -->
+            <div class="settings-tab-pane" id="tab-data">
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secBackup">Backup &amp; Restore</div>
+                    <div class="info-callout" data-i18n="backupTip">
+                        <strong>Tip:</strong> Export your battle regularly so you can restore items, images, bracket state, and settings anytime.
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button type="button" class="btn-secondary" onclick="exportProgress()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span data-i18n="btnExport">Export JSON</span>
+                        </button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('importFile').click()">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span data-i18n="btnImport">Import JSON</span>
+                        </button>
+                    </div>
+                    <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importProgress(this.files[0])">
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title" data-i18n="secReset">Reset Actions</div>
+                    <div class="form-group">
+                        <button type="button" class="btn-secondary" onclick="confirmAction(this, shuffleAndRestart)" style="width: 100%;">
+                            <svg class="icon" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            <span data-i18n="btnRestart">Reshuffle &amp; Restart Battle</span>
+                        </button>
+                        <div class="form-hint" data-i18n="hintRestart">Resets match progress and shuffles all items. Items and Twitch settings are kept.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <button type="button" class="btn-danger" onclick="confirmAction(this, clearBrowserCache)" style="width: 100%;">
+                            <span data-i18n="btnClearCache">Force Clear Browser Cache &amp; Reload</span>
+                        </button>
+                        <div class="form-hint" data-i18n="hintClearCache">Clears local storage &amp; IndexedDB (keeps Twitch credentials) and reloads.</div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="section-title">About</div>
+                    <div class="info-callout" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 238 116" fill="currentColor" style="width: 28px; height: 14px; color: var(--accent); flex-shrink: 0;">
+                                <polygon points="181.0,0.0 201.0,0.0 202.0,1.0 212.0,3.0 223.0,9.0 232.0,18.0 237.0,27.0 219.0,36.0 217.0,36.0 215.0,32.0 209.0,26.0 197.0,21.0 184.0,21.0 177.0,24.0 173.0,29.0 173.0,36.0 178.0,41.0 185.0,44.0 188.0,44.0 193.0,46.0 197.0,46.0 198.0,47.0 209.0,49.0 223.0,55.0 227.0,58.0 232.0,64.0 236.0,74.0 236.0,85.0 235.0,86.0 234.0,93.0 230.0,100.0 220.0,109.0 210.0,113.0 202.0,114.0 201.0,115.0 186.0,115.0 185.0,114.0 175.0,113.0 174.0,112.0 166.0,110.0 153.0,103.0 145.0,96.0 144.0,96.0 130.0,83.0 130.0,82.0 90.0,39.0 68.0,64.0 68.0,65.0 59.0,73.0 54.0,72.0 25.0,39.0 23.0,41.0 23.0,45.0 22.0,46.0 22.0,63.0 23.0,64.0 24.0,71.0 31.0,83.0 35.0,87.0 44.0,92.0 51.0,93.0 52.0,94.0 60.0,94.0 61.0,93.0 65.0,93.0 73.0,90.0 82.0,84.0 95.0,71.0 95.0,70.0 102.0,62.0 116.0,78.0 112.0,84.0 96.0,100.0 86.0,107.0 75.0,112.0 69.0,113.0 68.0,114.0 64.0,114.0 63.0,115.0 48.0,115.0 47.0,114.0 38.0,113.0 27.0,108.0 19.0,102.0 11.0,93.0 5.0,82.0 5.0,80.0 2.0,73.0 2.0,70.0 1.0,69.0 1.0,64.0 0.0,63.0 0.0,44.0 1.0,43.0 1.0,38.0 2.0,37.0 3.0,29.0 5.0,25.0 5.0,22.0 7.0,18.0 7.0,15.0 8.0,14.0 11.0,3.0 23.0,3.0 31.0,11.0 31.0,12.0 36.0,17.0 36.0,18.0 41.0,23.0 41.0,24.0 46.0,29.0 46.0,30.0 57.0,43.0 63.0,37.0 63.0,36.0 79.0,18.0 79.0,17.0 86.0,10.0 86.0,9.0 88.0,7.0 91.0,7.0 100.0,16.0 100.0,17.0 115.0,33.0 115.0,34.0 129.0,49.0 129.0,50.0 141.0,62.0 141.0,63.0 161.0,82.0 168.0,87.0 176.0,91.0 178.0,91.0 182.0,93.0 187.0,93.0 188.0,94.0 197.0,94.0 198.0,93.0 202.0,93.0 207.0,91.0 212.0,86.0 212.0,84.0 213.0,83.0 213.0,78.0 208.0,72.0 199.0,68.0 196.0,68.0 195.0,67.0 192.0,67.0 191.0,66.0 176.0,63.0 162.0,57.0 155.0,50.0 152.0,44.0 152.0,42.0 150.0,40.0 141.0,50.0 139.0,50.0 126.0,35.0 143.0,18.0 151.0,12.0 166.0,4.0 168.0,4.0 172.0,2.0 175.0,2.0 176.0,1.0 180.0,1.0" />
+                            </svg>
+                            <div>
+                                <div style="font-weight: 600; color: var(--text-primary);">Mellow Solutions</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">Twitch Tournament Maker v2.0.0</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                            <a href="https://github.com/Mello2110" target="_blank" rel="noopener" class="btn-small" style="text-decoration: none;">GitHub</a>
+                            <a href="https://buymeacoffee.com/mellowsolutions" target="_blank" rel="noopener" class="btn-small" style="text-decoration: none;">Buy Me a Coffee</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-footer">
+            <div class="settings-footer-meta">v2.0 • <span id="lastSaved">—</span></div>
+            <button type="button" class="btn-secondary" onclick="toggleSettings(false)" data-i18n="btnClose">Close</button>
+            <button type="button" class="btn-primary" onclick="saveSettings()" data-i18n="btnSaveConnect">Save &amp; Connect</button>
+        </div>
+    </aside>
+
+    <!-- Token Helper Modal -->
+    <div class="modal-backdrop" id="tokenHelpModal" role="dialog" aria-modal="true">
+        <div class="modal-card">
+            <div class="modal-title" data-i18n="modalTokenTitle">How to get a Twitch OAuth Token</div>
+            <div class="token-help-steps" id="tokenHelpSteps"></div>
+            <button type="button" class="btn-primary" onclick="closeTokenHelper()" style="width: 100%; margin-top: 16px;" data-i18n="btnClose">Close</button>
+        </div>
+    </div>
+
+    <!-- Scoped Overlays (Left 1400x1032 — never covers 520x520 Chat Space) -->
+    <div class="pause-overlay" id="pauseOverlay">
+        <div class="pause-content">
+            <div class="pause-matchup" id="pauseMatchup"></div>
+            <div class="pause-title" data-i18n="nextMatchIn">Next Match In</div>
+            <div class="pause-timer" id="pauseTimer">15</div>
+            <button type="button" class="pause-skip" onclick="skipPause()" data-i18n="btnStartNow">Start Now</button>
+        </div>
+    </div>
+
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-message" id="resultMessage"></div>
+    </div>
+
+    <div class="champion-overlay" id="championOverlay">
+        <div class="champion-message" id="championMessage"></div>
+    </div>
+
+    <!-- Main 1920x1080 Broadcast Layout -->
+    <div class="container">
+        <header class="unified-header">
+            <div class="header-left">
+                <div class="title" id="battleTitle">BATTLE</div>
+                <div class="mode-badge" id="modeBadge">KING OF THE HILL</div>
+                <div class="round-info" id="roundInfo">Match 0/0</div>
+            </div>
+            <div class="header-right">
+                <button type="button" class="connection-pill disconnected" id="connectionPill" onclick="openTwitchSettings()" title="Configure Twitch">
+                    <span class="connection-dot"></span>
+                    <span id="connectionText">Disconnected</span>
+                </button>
+                <div class="timer-wrapper">
+                    <span class="timer-label" data-i18n="lblTime">Time</span>
+                    <div class="timer-display" id="timer">30</div>
+                    <button type="button" class="header-icon-btn" id="pauseBtn" onclick="togglePause()" title="Pause/Resume (Space)" aria-label="Pause or resume voting" disabled>
+                        <svg class="icon icon-sm" id="pauseBtnIcon" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    </button>
+                    <button type="button" class="header-icon-btn" onclick="toggleSettings(true)" title="Settings" aria-label="Open settings">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+                    </button>
+                    <div class="mode-toggle" title="Allow multiple votes per user">
+                        <span class="toggle-label">Multi</span>
+                        <button type="button" class="toggle-switch" id="toggleSwitch" onclick="toggleVoteMode()" aria-label="Toggle multi-vote" aria-pressed="false">
+                            <span class="toggle-slider"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="battle-section">
+            <div class="arena">
+                <div class="arena-empty-banner" id="arenaEmptyBanner">
+                    <span id="arenaEmptyText">Add at least 2 items and shuffle to start a battle.</span>
+                    <button type="button" class="btn-small" onclick="openItemsSettings()" data-i18n="btnAddItems">+ Add Items</button>
+                    <button type="button" class="btn-small" onclick="shuffleAndRestart()" data-i18n="btnShuffleStart">Shuffle &amp; Start</button>
+                </div>
+
+                <!-- KOTH View -->
+                <div class="koth-view" id="kothView">
+                    <div class="vs-display" id="vsDisplay">
+                        <div class="fighter" id="fighter1" onclick="streamerVote(1)">
+                            <div class="fighter-tag f1">!1</div>
+                            <div class="fighter-image-wrap">
+                                <img class="fighter-image" id="fighter1Img" src="" alt="" style="display:none;">
+                                <div class="fighter-placeholder" id="fighter1Placeholder">
+                                    <svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </div>
+                            </div>
+                            <div class="fighter-name" id="fighter1Name">—</div>
+                            <div class="fighter-votes" id="fighter1Votes">0 votes</div>
+                            <div class="fighter-bar" id="fighter1Bar"><div class="fighter-bar-fill" id="fighter1Fill"></div></div>
+                        </div>
+                        <div class="vs-divider">
+                            <div class="vs-text">VS</div>
+                            <div class="vs-match-num" id="vsMatchNum">—</div>
+                        </div>
+                        <div class="fighter" id="fighter2" onclick="streamerVote(2)">
+                            <div class="fighter-tag f2">!2</div>
+                            <div class="fighter-image-wrap">
+                                <img class="fighter-image" id="fighter2Img" src="" alt="" style="display:none;">
+                                <div class="fighter-placeholder" id="fighter2Placeholder">
+                                    <svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                </div>
+                            </div>
+                            <div class="fighter-name" id="fighter2Name">—</div>
+                            <div class="fighter-votes" id="fighter2Votes">0 votes</div>
+                            <div class="fighter-bar" id="fighter2Bar"><div class="fighter-bar-fill" id="fighter2Fill"></div></div>
+                        </div>
+                    </div>
+
+                    <div class="queue-section">
+                        <div class="queue-box">
+                            <div class="queue-label"><span data-i18n="lblWaiting">Waiting</span> <span class="queue-count" id="waitingCount">(0)</span></div>
+                            <div class="queue-items" id="waitingQueue"></div>
+                        </div>
+                        <div class="queue-box">
+                            <div class="queue-label"><span data-i18n="lblEliminated">Eliminated</span> <span class="queue-count" id="eliminatedCount">(0)</span></div>
+                            <div class="queue-items" id="eliminatedQueue"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tournament Bracket View -->
+                <div class="bracket-view" id="bracketView"></div>
+            </div>
+
+            <div class="hotkeys">
+                <span class="hotkey"><kbd class="hotkey-key">1</kbd> <span data-i18n="hkVote1">Vote Left</span></span>
+                <span class="hotkey"><kbd class="hotkey-key">2</kbd> <span data-i18n="hkVote2">Vote Right</span></span>
+                <span class="hotkey"><kbd class="hotkey-key">N</kbd> <span data-i18n="hkNext">Next</span></span>
+                <span class="hotkey"><kbd class="hotkey-key">Space</kbd> <span data-i18n="hkPause">Pause</span></span>
+                <span class="hotkey"><kbd class="hotkey-key">Esc</kbd> <span data-i18n="hkClose">Close Menu</span></span>
+            </div>
+        </main>
+
+        <aside class="voting-section">
+            <div class="voting-container">
+                <div class="matchup-preview" id="matchupPreview">
+                    <div class="matchup-fighters">
+                        <div class="matchup-thumb-wrap left">
+                            <img class="matchup-thumb" id="thumbLeft" src="" alt="" style="display:none;">
+                            <svg class="icon" id="thumbLeftPlaceholder" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        </div>
+                        <div class="matchup-vs">VS</div>
+                        <div class="matchup-thumb-wrap right">
+                            <img class="matchup-thumb" id="thumbRight" src="" alt="" style="display:none;">
+                            <svg class="icon" id="thumbRightPlaceholder" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        </div>
+                    </div>
+                    <div class="matchup-names">
+                        <div class="matchup-name" id="nameLeft">—</div>
+                        <div class="matchup-name" id="nameRight" style="text-align:right;">—</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="vote-ticker" id="voteTicker"></div>
+                    <div class="chart-wrapper"><canvas id="votingChart"></canvas></div>
+                </div>
+
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalVotes">0</div>
+                            <div class="stat-label" data-i18n="statTotal">Total</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="uniqueVoters">0</div>
+                            <div class="stat-label" data-i18n="statVoters">Voters</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="leader">—</div>
+                            <div class="stat-label" data-i18n="statLeader">Leader</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button type="button" class="btn btn-start" id="startBtn" onclick="startVoting()" data-i18n="btnStartVoting">Start Voting</button>
+                    <button type="button" class="btn btn-reset" onclick="resetVoteState()" data-i18n="btnReset">Reset</button>
+                </div>
+            </div>
+
+            <div class="control-panel" id="controlPanel">
+                <button type="button" class="ctrl-btn vote-1" onclick="streamerVote(1)" title="Vote !1">!1</button>
+                <div class="ctrl-spacer"></div>
+                <button type="button" class="ctrl-btn skip-btn" onclick="skipMatch()" title="Skip match">SKIP</button>
+                <button type="button" class="ctrl-btn" onclick="shuffleAndRestart()" title="Reshuffle &amp; Restart">
+                    <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+                    <span data-i18n="btnReshuffle">Reshuffle</span>
+                </button>
+                <div class="ctrl-spacer"></div>
+                <button type="button" class="ctrl-btn vote-2" onclick="streamerVote(2)" title="Vote !2">!2</button>
+            </div>
+
+            <div class="chat-space hidden-guide" id="chatSpace">
+                <div class="chat-placeholder">Chat Space (520×520)</div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+        // ==========================================
+        // I18N (EN default, DE supported)
+        // ==========================================
+        const I18N = {
+            en: {
+                settingsTitle: "Settings",
+                tabTwitch: "Twitch & Setup", tabItems: "Items", tabMode: "Mode & Voting", tabDesign: "Design & OBS", tabBackup: "Backup",
+                secTwitch: "Twitch Chat Connection", lblChannel: "Channel Name", lblToken: "OAuth Token", btnTokenHelp: "How to get token?",
+                hintToken: "Saved locally in OBS browser cache. Only chat:read scope is required.",
+                secStreamTiming: "Stream, Timing & Language", lblTitle: "Battle Title", lblLanguage: "Language",
+                lblVoteDuration: "Voting Duration (sec)", lblPauseDuration: "Pause Between (sec)",
+                secAddImages: "Add Images (IndexedDB — unlimited storage)",
+                uploadPrompt: "Drag & drop images here, or click to select files",
+                secLoadedItems: "Loaded Items", btnShuffleStart: "Shuffle & Start", btnClearAll: "Clear All",
+                secGameMode: "Game Mode",
+                modeKoth: "King of the Hill", modeKothDesc: "Winner stays, challengers rotate. Last one standing wins.",
+                modeTournament: "Tournament Bracket", modeTournamentDesc: "Single elimination bracket. Items are paired randomly.",
+                secChatBehavior: "Chat & Moderation",
+                chkTextAfterCmd: "Allow text after command", chkTextAfterCmdDesc: 'Counts "!1 easy win" as a valid !1 vote.',
+                chkModCmd: "Enable Broadcaster & Mod chat commands", chkModCmdDesc: "Allows !battle start, !battle pause, !battle next, !battle skip, !battle reset in Twitch chat.",
+                secCriteria: "Voting Criteria (Pause Screen)", chkCriteria: "Show criteria during pause",
+                chkCriteriaDesc: "Displays battle criteria before each voting round.", btnAddCriterion: "+ Add Criterion",
+                secDisplay: "Display", lblDisplay: "Label Display", lblShowLabels: "Show Labels", lblShowLabelsDesc: "Display item names below images",
+                lblIconsOnly: "Icons Only", lblIconsOnlyDesc: "Hide text labels for full-bleed images",
+                secOverlay: "OBS Overlay, Audio & Theme", lblBgOpacity: "Background Opacity",
+                hintBgOpacity: "Set to 0% for transparent OBS overlay over your stream scene.", lblAccent: "Accent Color",
+                chkChatGuide: 'Show "Chat Space (520×520)" alignment label', chkChatGuideDesc: "Turn off once your OBS chat overlay is positioned.",
+                chkTicker: "Show live vote ticker", chkTickerDesc: "Displays recent chat votes briefly in the chart corner.",
+                chkSound: "Enable subtle audio cues", chkSoundDesc: "Plays a soft tick in the last 3 seconds and on completion.",
+                secBackup: "Backup & Restore",
+                backupTip: "<strong>Tip:</strong> Export your battle regularly so you can restore items, images, bracket state, and settings anytime.",
+                btnExport: "Export JSON", btnImport: "Import JSON", secReset: "Reset Actions",
+                btnRestart: "Reshuffle & Restart Battle", hintRestart: "Resets match progress and shuffles all items. Items and Twitch settings are kept.",
+                btnClearCache: "Force Clear Browser Cache & Reload", hintClearCache: "Clears local storage & IndexedDB (keeps Twitch credentials) and reloads.",
+                btnClose: "Close", btnSaveConnect: "Save & Connect", modalTokenTitle: "How to get a Twitch OAuth Token",
+                nextMatchIn: "Next Match In", btnStartNow: "Start Now",
+                lblTime: "Time", lblWaiting: "Waiting", lblEliminated: "Eliminated",
+                hkVote1: "Vote Left", hkVote2: "Vote Right", hkNext: "Next", hkPause: "Pause", hkClose: "Close Menu",
+                btnAddItems: "+ Add Items", statTotal: "Total", statVoters: "Voters", statLeader: "Leader",
+                btnStartVoting: "Start Voting", btnReset: "Reset", btnReshuffle: "Reshuffle",
+                emptyItems: "No items loaded yet.", filterPlaceholder: "Filter items...",
+                arenaEmptyNeedItems: "Add at least 2 items in Settings to start a battle.",
+                arenaEmptyNeedShuffle: "Items loaded — click Shuffle & Start to generate matchups.",
+                connNone: "Not configured", connConnecting: "Connecting…", connReconnecting: "Reconnecting…",
+                connAuthFail: "Auth failed", connDisconnected: "Disconnected", connError: "Error",
+                rateBy: "Rate By", winnerTitle: "Winner!", championTitle: "Champion",
+                btnViewResults: "View Results", btnPlayAgain: "Play Again",
+                tokenSteps: `<ol><li>Visit <a href="https://twitchtokengenerator.com/" target="_blank" rel="noopener">twitchtokengenerator.com</a></li><li>Select <strong>Custom Scope Token</strong></li><li>Enable only <code>chat:read</code></li><li>Click <strong>Generate Token</strong> and authorize with Twitch</li><li>Copy the <strong>Access Token</strong> and paste it into the OAuth field</li></ol><p style="color:var(--text-muted);font-size:12px;">The <code>oauth:</code> prefix is handled automatically.</p>`
+            },
+            de: {
+                settingsTitle: "Einstellungen",
+                tabTwitch: "Twitch & Setup", tabItems: "Items", tabMode: "Modus & Voting", tabDesign: "Design & OBS", tabBackup: "Backup",
+                secTwitch: "Twitch-Chat-Verbindung", lblChannel: "Kanalname", lblToken: "OAuth-Token", btnTokenHelp: "Token erhalten?",
+                hintToken: "Lokal im OBS-Browsercache gespeichert. Nur chat:read erforderlich.",
+                secStreamTiming: "Stream, Timing & Sprache", lblTitle: "Battle-Titel", lblLanguage: "Sprache",
+                lblVoteDuration: "Voting-Dauer (Sek.)", lblPauseDuration: "Pause dazwischen (Sek.)",
+                secAddImages: "Bilder hinzufügen (IndexedDB — unbegrenzter Speicher)",
+                uploadPrompt: "Bilder hierher ziehen oder klicken zum Auswählen",
+                secLoadedItems: "Geladene Items", btnShuffleStart: "Mischen & Starten", btnClearAll: "Alle löschen",
+                secGameMode: "Spielmodus",
+                modeKoth: "King of the Hill", modeKothDesc: "Der Gewinner bleibt, Herausforderer rotieren. Der letzte Überlebende gewinnt.",
+                modeTournament: "Turnier-Bracket", modeTournamentDesc: "K.O.-Baum (Single Elimination). Items werden zufällig gepaart.",
+                secChatBehavior: "Chat & Moderation",
+                chkTextAfterCmd: "Text nach Befehl erlauben", chkTextAfterCmdDesc: 'Zählt "!1 klarer Sieg" als gültige !1-Stimme.',
+                chkModCmd: "Broadcaster- & Mod-Befehle im Chat", chkModCmdDesc: "Erlaubt !battle start, !battle pause, !battle next, !battle skip, !battle reset im Twitch-Chat.",
+                secCriteria: "Bewertungskriterien (Pausen-Screen)", chkCriteria: "Kriterien während der Pause anzeigen",
+                chkCriteriaDesc: "Zeigt Bewertungs-Richtlinien vor jedem Match.", btnAddCriterion: "+ Kriterium hinzufügen",
+                secDisplay: "Anzeige", lblDisplay: "Beschriftung", lblShowLabels: "Namen anzeigen", lblShowLabelsDesc: "Item-Namen unter den Bildern anzeigen",
+                lblIconsOnly: "Nur Bilder", lblIconsOnlyDesc: "Keine Text-Labels, vollflächige Bilder",
+                secOverlay: "OBS-Overlay, Audio & Design", lblBgOpacity: "Hintergrund-Deckkraft",
+                hintBgOpacity: "Auf 0 % stellen für transparentes OBS-Overlay.", lblAccent: "Akzentfarbe",
+                chkChatGuide: '"Chat Space (520×520)"-Hilfsrahmen anzeigen', chkChatGuideDesc: "Ausschalten, sobald der OBS-Chat positioniert ist.",
+                chkTicker: "Live-Vote-Ticker anzeigen", chkTickerDesc: "Zeigt eingehende Chat-Votes kurz oben rechts im Chart.",
+                chkSound: "Dezente Audio-Signale", chkSoundDesc: "Leiser Ton in den letzten 3 Sekunden und bei Abschluss.",
+                secBackup: "Backup & Wiederherstellung",
+                backupTip: "<strong>Tipp:</strong> Exportiere dein Battle regelmäßig, um Items, Bilder, Turnierstand und Einstellungen jederzeit wiederherzustellen.",
+                btnExport: "JSON exportieren", btnImport: "JSON importieren", secReset: "Zurücksetzen",
+                btnRestart: "Mischen & Battle neu starten", hintRestart: "Setzt Match-Fortschritt zurück und mischt alle Items. Items und Twitch-Daten bleiben erhalten.",
+                btnClearCache: "Browser-Cache komplett leeren & neu laden", hintClearCache: "Löscht LocalStorage & IndexedDB (Twitch-Daten bleiben) und lädt neu.",
+                btnClose: "Schließen", btnSaveConnect: "Speichern & Verbinden", modalTokenTitle: "Twitch OAuth-Token erstellen",
+                nextMatchIn: "Nächstes Match in", btnStartNow: "Jetzt starten",
+                lblTime: "Zeit", lblWaiting: "Warteschlange", lblEliminated: "Ausgeschieden",
+                hkVote1: "Links wählen", hkVote2: "Rechts wählen", hkNext: "Weiter", hkPause: "Pause", hkClose: "Menü schließen",
+                btnAddItems: "+ Items hinzufügen", statTotal: "Gesamt", statVoters: "Voter", statLeader: "Führend",
+                btnStartVoting: "Voting starten", btnReset: "Reset", btnReshuffle: "Neu mischen",
+                emptyItems: "Noch keine Items geladen.", filterPlaceholder: "Items filtern...",
+                arenaEmptyNeedItems: "Füge mindestens 2 Items in den Einstellungen hinzu.",
+                arenaEmptyNeedShuffle: "Items geladen — klicke auf Mischen & Starten.",
+                connNone: "Nicht konfiguriert", connConnecting: "Verbinde…", connReconnecting: "Verbinde neu…",
+                connAuthFail: "Login fehlgeschlagen", connDisconnected: "Getrennt", connError: "Fehler",
+                rateBy: "Bewerten nach", winnerTitle: "Sieger!", championTitle: "Champion",
+                btnViewResults: "Ergebnisse ansehen", btnPlayAgain: "Nochmal spielen",
+                tokenSteps: `<ol><li>Öffne <a href="https://twitchtokengenerator.com/" target="_blank" rel="noopener">twitchtokengenerator.com</a></li><li>Wähle <strong>Custom Scope Token</strong></li><li>Aktiviere nur <code>chat:read</code></li><li>Klicke <strong>Generate Token</strong> und autorisiere mit Twitch</li><li>Kopiere den <strong>Access Token</strong> und füge ihn hier ein</li></ol><p style="color:var(--text-muted);font-size:12px;">Das <code>oauth:</code>-Präfix wird automatisch ergänzt.</p>`
+            }
+        };
+
+        function t(key) {
+            const lang = CONFIG.language === 'de' ? 'de' : 'en';
+            return I18N[lang][key] ?? I18N.en[key] ?? key;
+        }
+
+        function applyTranslations() {
+            document.documentElement.lang = CONFIG.language === 'de' ? 'de' : 'en';
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const val = t(key);
+                if (key === 'backupTip') el.innerHTML = val;
+                else el.textContent = val;
+            });
+            document.getElementById('tokenHelpSteps').innerHTML = t('tokenSteps');
+            document.getElementById('itemSearchInput').placeholder = t('filterPlaceholder');
+        }
+
+        // ==========================================
+        // INDEXEDDB IMAGE STORE (Unlimited Local Storage)
+        // ==========================================
+        const imageCache = new Map();
+        const DB_NAME = 'BattleProImages';
+        const STORE_NAME = 'images';
+
+        function openImageDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = () => {
+                    const db = req.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function dbPutImage(id, dataUrl) {
+            imageCache.set(id, dataUrl);
+            try {
+                const db = await openImageDB();
+                await new Promise((res, rej) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).put(dataUrl, id);
+                    tx.oncomplete = res;
+                    tx.onerror = () => rej(tx.error);
+                });
+            } catch {}
+        }
+
+        async function dbDeleteImage(id) {
+            imageCache.delete(id);
+            try {
+                const db = await openImageDB();
+                await new Promise((res) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).delete(id);
+                    tx.oncomplete = res;
+                    tx.onerror = res;
+                });
+            } catch {}
+        }
+
+        async function dbClearImages() {
+            imageCache.clear();
+            try {
+                const db = await openImageDB();
+                await new Promise((res) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    tx.objectStore(STORE_NAME).clear();
+                    tx.oncomplete = res;
+                    tx.onerror = res;
+                });
+            } catch {}
+        }
+
+        async function dbLoadAllImages() {
+            try {
+                const db = await openImageDB();
+                await new Promise((res) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const cursorReq = store.openCursor();
+                    cursorReq.onsuccess = (e) => {
+                        const cursor = e.target.result;
+                        if (cursor) {
+                            imageCache.set(cursor.key, cursor.value);
+                            cursor.continue();
+                        } else res();
+                    };
+                    cursorReq.onerror = res;
+                });
+            } catch {}
+        }
+
+        function getItemImage(item) {
+            if (!item) return '';
+            return imageCache.get(item.id) || item.image || '';
+        }
+
+        // ==========================================
+        // HELPERS & AUDIO
+        // ==========================================
+        function escapeHtml(str) {
+            return String(str ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        let audioCtx = null;
+        function playTone(freq, dur = 0.07, vol = 0.06) {
+            if (!CONFIG.soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + dur);
+            } catch {}
+        }
+
+        let toastTimer = null;
+        function showToast(message, duration = 2200) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => toast.classList.remove('show'), duration);
+        }
+
+        const confirmTimers = new WeakMap();
+        function confirmAction(btn, actionFn) {
+            if (!btn.dataset.confirming) {
+                btn.dataset.origHtml = btn.innerHTML;
+                btn.dataset.confirming = '1';
+                btn.classList.add('confirming');
+                btn.textContent = CONFIG.language === 'de' ? 'Erneut klicken zum Bestätigen' : 'Click again to confirm';
+                const timer = setTimeout(() => {
+                    if (btn.dataset.confirming) {
+                        btn.innerHTML = btn.dataset.origHtml;
+                        delete btn.dataset.confirming;
+                        btn.classList.remove('confirming');
+                    }
+                }, 3000);
+                confirmTimers.set(btn, timer);
+                return;
+            }
+            clearTimeout(confirmTimers.get(btn));
+            btn.innerHTML = btn.dataset.origHtml;
+            delete btn.dataset.confirming;
+            btn.classList.remove('confirming');
+            actionFn();
+        }
+
+        // ==========================================
+        // STATE
+        // ==========================================
+        const APP_VERSION = "2.0.0";
+
+        let CONFIG = {
+            title: "BATTLE",
+            language: "en",
+            channel: "",
+            token: "",
+            votingDuration: 30,
+            pauseDuration: 15,
+            gameMode: "koth",
+            showLabels: true,
+            showChatGuide: false,
+            showVoteTicker: true,
+            soundEnabled: false,
+            allowTextAfterCmd: true,
+            modCommands: true,
+            criteria: { enabled: true, items: [] },
+            bgOpacity: 100,
+            accentHue: 40,
+            accentSat: 48,
+            accentLight: 54,
+            items: []
+        };
+
+        let gameState = {
+            queue: [],
+            eliminated: [],
+            champion: -1,
+            challenger: -1,
+            matchNumber: 0,
+            totalMatches: 0,
+            wins: {},
+            isComplete: false
+        };
+
+        let votes = { 1: 0, 2: 0 };
+        let userVotes = new Map(); // username -> 1 | 2 (single-vote correction)
+        let voters = new Set();
+        let isVoting = false;
+        let votingPaused = false;
+        let isPaused = false;
+        let needsPauseIntro = true;
+        let timeRemaining = 30;
+        let pauseTimeRemaining = 15;
+        let timerInterval = null;
+        let pauseInterval = null;
+        let resultTimeout = null;
+        let chart = null;
+        let ws = null;
+        let wsReconnectTimer = null;
+        let wsReconnectDelay = 3000;
+        let wsManualClose = false;
+        let allowMultiVote = false;
+        let pendingUploads = [];
+
+        // ==========================================
+        // INIT & MIGRATION
+        // ==========================================
+        async function init() {
+            await dbLoadAllImages();
+            await loadFromLocalStorage();
+            initializeUI();
+            connectToChat();
+            setupImageUpload();
+        }
+
+        async function loadFromLocalStorage() {
+            const prevVersion = localStorage.getItem('battleAppVersion') || '';
+            localStorage.setItem('battleAppVersion', APP_VERSION);
+
+            const preservedCreds = localStorage.getItem('battleCredentials');
+            let restoredChannel = '', restoredToken = '';
+            if (preservedCreds) {
+                try {
+                    const creds = JSON.parse(preservedCreds);
+                    restoredChannel = creds.channel || '';
+                    restoredToken = creds.token || '';
+                } catch {}
+                localStorage.removeItem('battleCredentials');
+            }
+
+            const saved = localStorage.getItem('battleConfig');
+            if (saved) {
+                try {
+                    const loaded = JSON.parse(saved);
+                    CONFIG = {
+                        ...CONFIG,
+                        ...loaded,
+                        criteria: {
+                            enabled: loaded.criteria?.enabled ?? true,
+                            items: loaded.criteria?.items ?? []
+                        }
+                    };
+                    if (prevVersion !== APP_VERSION) {
+                        CONFIG.showChatGuide = false;
+                        if (CONFIG.accentHue === 187) {
+                            CONFIG.accentHue = 40;
+                            CONFIG.accentSat = 48;
+                            CONFIG.accentLight = 54;
+                        }
+                    }
+                } catch {}
+            }
+
+            if (restoredChannel) CONFIG.channel = restoredChannel;
+            if (restoredToken) CONFIG.token = restoredToken;
+
+            // Migrate any inline base64 images from localStorage into IndexedDB
+            let migrated = false;
+            for (let i = 0; i < CONFIG.items.length; i++) {
+                const it = CONFIG.items[i];
+                if (!it.id) {
+                    it.id = `img_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`;
+                    migrated = true;
+                }
+                if (it.image) {
+                    await dbPutImage(it.id, it.image);
+                    delete it.image;
+                    migrated = true;
+                }
+            }
+
+            const savedState = localStorage.getItem('battleState');
+            if (savedState) {
+                try {
+                    gameState = { ...gameState, ...JSON.parse(savedState) };
+                } catch {}
+            }
+
+            if (migrated || prevVersion !== APP_VERSION) saveToLocalStorage();
+        }
+
+        function saveToLocalStorage() {
+            const slimItems = CONFIG.items.map(it => ({ id: it.id, name: it.name }));
+            const toSave = { ...CONFIG, items: slimItems };
+            localStorage.setItem('battleConfig', JSON.stringify(toSave));
+            localStorage.setItem('battleState', JSON.stringify(gameState));
+            const indicator = document.getElementById('lastSaved');
+            if (indicator) indicator.textContent = new Date().toLocaleTimeString();
+        }
+
+        function initializeUI() {
+            applyTranslations();
+            document.getElementById('battleTitle').textContent = CONFIG.title || 'BATTLE';
+            document.getElementById('settingTitle').value = CONFIG.title;
+            document.getElementById('settingLanguage').value = CONFIG.language === 'de' ? 'de' : 'en';
+            document.getElementById('settingVoteDuration').value = CONFIG.votingDuration;
+            document.getElementById('settingPauseDuration').value = CONFIG.pauseDuration;
+            document.getElementById('settingChannel').value = CONFIG.channel;
+            document.getElementById('settingToken').value = (CONFIG.token || '').replace(/^oauth:/, '');
+
+            const setRadio = (name, val) => {
+                const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+                if (el) el.checked = true;
+            };
+            setRadio('gameMode', CONFIG.gameMode);
+            setRadio('labelMode', CONFIG.showLabels ? 'labels' : 'icons');
+
+            document.getElementById('criteriaEnabledCheckbox').checked = CONFIG.criteria.enabled;
+            document.getElementById('showChatGuideCheckbox').checked = !!CONFIG.showChatGuide;
+            document.getElementById('showVoteTickerCheckbox').checked = CONFIG.showVoteTicker !== false;
+            document.getElementById('soundEnabledCheckbox').checked = !!CONFIG.soundEnabled;
+            document.getElementById('allowTextAfterCmdCheckbox').checked = CONFIG.allowTextAfterCmd !== false;
+            document.getElementById('modCommandsCheckbox').checked = CONFIG.modCommands !== false;
+            document.getElementById('chatSpace').classList.toggle('hidden-guide', !CONFIG.showChatGuide);
+
+            document.getElementById('bgOpacitySlider').value = CONFIG.bgOpacity;
+            document.getElementById('accentHueSlider').value = CONFIG.accentHue;
+
+            setPauseButtonState(false, true);
+            document.getElementById('modeBadge').textContent = CONFIG.gameMode === 'koth' ? 'KING OF THE HILL' : 'TOURNAMENT';
+            document.getElementById('itemCount').textContent = CONFIG.items.length;
+
+            timeRemaining = CONFIG.votingDuration;
+            document.getElementById('timer').textContent = timeRemaining;
+            votes = { 1: 0, 2: 0 };
+
+            renderSettingsItems();
+            renderCriteriaSettings();
+            initChart();
+            switchView();
+            updateMatchDisplay();
+            updateFighterLabels();
+            if (CONFIG.gameMode === 'koth') updateQueues();
+            if (CONFIG.gameMode === 'tournament' && gameState.bracket) renderBracket();
+            updateRoundInfo();
+            applyAppearance(false);
+        }
+
+        // ==========================================
+        // APPEARANCE & SETTINGS TABS
+        // ==========================================
+        function applyAppearance(shouldSave = true) {
+            const opacity = parseInt(document.getElementById('bgOpacitySlider').value, 10);
+            const hue = parseInt(document.getElementById('accentHueSlider').value, 10);
+            const sat = CONFIG.accentSat ?? 48;
+            const light = CONFIG.accentLight ?? 54;
+            CONFIG.bgOpacity = opacity;
+            CONFIG.accentHue = hue;
+            document.documentElement.style.setProperty('--bg-opacity', (opacity / 100).toFixed(2));
+            document.documentElement.style.setProperty('--accent-hue', hue);
+            document.documentElement.style.setProperty('--accent-sat', sat + '%');
+            document.documentElement.style.setProperty('--accent-light', light + '%');
+            document.getElementById('bgOpacityValue').textContent = opacity + '%';
+            document.getElementById('accentPreview').style.background = `hsl(${hue}, ${sat}%, ${light}%)`;
+
+            if (chart) {
+                const accentCol = `hsl(${hue}, ${sat}%, ${light}%)`;
+                const accentFill = `hsla(${hue}, ${sat}%, ${light}%, 0.85)`;
+                chart.data.datasets[0].backgroundColor = [accentFill, 'rgba(201, 88, 99, 0.85)'];
+                chart.data.datasets[0].borderColor = [accentCol, '#c95863'];
+                chart.update();
+            }
+
+            if (shouldSave) saveToLocalStorage();
+        }
+
+        function setAccentPreset(hue, sat, light) {
+            CONFIG.accentSat = sat;
+            CONFIG.accentLight = light;
+            document.getElementById('accentHueSlider').value = hue;
+            applyAppearance(true);
+        }
+
+        function switchSettingsTab(tabId) {
+            document.querySelectorAll('.settings-tab').forEach(btn => {
+                const active = btn.dataset.tab === tabId;
+                btn.classList.toggle('active', active);
+                btn.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            document.querySelectorAll('.settings-tab-pane').forEach(pane => {
+                pane.classList.toggle('active', pane.id === `tab-${tabId}`);
+            });
+        }
+
+        function toggleSettings(forceState) {
+            const panel = document.getElementById('settingsPanel');
+            const backdrop = document.getElementById('settingsBackdrop');
+            const open = typeof forceState === 'boolean' ? forceState : !panel.classList.contains('open');
+            panel.classList.toggle('open', open);
+            backdrop.classList.toggle('open', open);
+        }
+
+        function openTwitchSettings() { switchSettingsTab('twitch'); toggleSettings(true); }
+        function openItemsSettings() { switchSettingsTab('items'); toggleSettings(true); }
+
+        function changeGameMode(mode) {
+            CONFIG.gameMode = mode;
+            saveToLocalStorage();
+            document.getElementById('modeBadge').textContent = mode === 'koth' ? 'KING OF THE HILL' : 'TOURNAMENT';
+            switchView();
+            if (mode === 'tournament' && gameState.bracket) renderBracket();
+            if (mode === 'koth') updateQueues();
+            updateRoundInfo();
+            showToast(mode === 'koth' ? 'King of the Hill' : 'Tournament Bracket', 1500);
+        }
+
+        function instantSaveSetting(key, value) {
+            switch (key) {
+                case 'language':
+                    CONFIG.language = value;
+                    applyTranslations();
+                    renderSettingsItems();
+                    updateMatchDisplay();
+                    if (!CONFIG.token || !CONFIG.channel) setConnectionUI('disconnected', t('connNone'));
+                    break;
+                case 'showLabels':
+                    CONFIG.showLabels = value;
+                    updateFighterLabels();
+                    updateMatchDisplay();
+                    if (CONFIG.gameMode === 'koth') updateQueues();
+                    if (CONFIG.gameMode === 'tournament' && gameState.bracket) renderBracket();
+                    break;
+                case 'criteriaEnabled': CONFIG.criteria.enabled = value; break;
+                case 'showVoteTicker': CONFIG.showVoteTicker = value; break;
+                case 'soundEnabled': CONFIG.soundEnabled = value; break;
+                case 'allowTextAfterCmd': CONFIG.allowTextAfterCmd = value; break;
+                case 'modCommands': CONFIG.modCommands = value; break;
+                case 'showChatGuide':
+                    CONFIG.showChatGuide = value;
+                    document.getElementById('chatSpace').classList.toggle('hidden-guide', !value);
+                    break;
+            }
+            saveToLocalStorage();
+            showToast(CONFIG.language === 'de' ? 'Einstellung gespeichert' : 'Setting updated', 1400);
+        }
+
+        function saveSettings() {
+            CONFIG.title = document.getElementById('settingTitle').value.trim() || 'BATTLE';
+            CONFIG.language = document.getElementById('settingLanguage').value;
+            CONFIG.votingDuration = Math.max(5, parseInt(document.getElementById('settingVoteDuration').value, 10) || 30);
+            CONFIG.pauseDuration = Math.max(0, parseInt(document.getElementById('settingPauseDuration').value, 10) || 0);
+            CONFIG.channel = document.getElementById('settingChannel').value.trim().toLowerCase().replace(/\s+/g, '');
+
+            let token = document.getElementById('settingToken').value.replace(/\s+/g, '').replace(/^oauth:/i, '');
+            CONFIG.token = token ? 'oauth:' + token : '';
+
+            CONFIG.gameMode = document.querySelector('input[name="gameMode"]:checked').value;
+            CONFIG.showLabels = document.querySelector('input[name="labelMode"]:checked').value === 'labels';
+            CONFIG.criteria.enabled = document.getElementById('criteriaEnabledCheckbox').checked;
+            CONFIG.showChatGuide = document.getElementById('showChatGuideCheckbox').checked;
+            CONFIG.showVoteTicker = document.getElementById('showVoteTickerCheckbox').checked;
+            CONFIG.soundEnabled = document.getElementById('soundEnabledCheckbox').checked;
+            CONFIG.allowTextAfterCmd = document.getElementById('allowTextAfterCmdCheckbox').checked;
+            CONFIG.modCommands = document.getElementById('modCommandsCheckbox').checked;
+
+            saveToLocalStorage();
+            initializeUI();
+            showToast(CONFIG.language === 'de' ? 'Einstellungen gespeichert' : 'Settings saved', 2000);
+            toggleSettings(false);
+
+            wsManualClose = true;
+            if (ws) ws.close();
+            wsManualClose = false;
+            connectToChat();
+        }
+
+        // ==========================================
+        // GAME LOGIC (KOTH & TOURNAMENT)
+        // ==========================================
+        function shuffleAndRestart() {
+            if (CONFIG.items.length < 2) {
+                showToast(CONFIG.language === 'de' ? 'Mindestens 2 Items erforderlich!' : 'Need at least 2 items!', 2500);
+                return;
+            }
+
+            if (isVoting) { isVoting = false; votingPaused = false; clearInterval(timerInterval); }
+            if (isPaused) { isPaused = false; clearInterval(pauseInterval); document.getElementById('pauseOverlay').classList.remove('active'); }
+            clearTimeout(resultTimeout);
+
+            const indices = CONFIG.items.map((_, i) => i);
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+
+            if (CONFIG.gameMode === 'tournament') {
+                setupTournamentBracket(indices);
+            } else {
+                gameState = {
+                    queue: indices.slice(2),
+                    eliminated: [],
+                    champion: indices[0],
+                    challenger: indices[1],
+                    matchNumber: 1,
+                    totalMatches: indices.length - 1,
+                    wins: {},
+                    isComplete: false
+                };
+            }
+
+            needsPauseIntro = true;
+            saveToLocalStorage();
+            switchView();
+            updateMatchDisplay();
+            updateFighterLabels();
+            if (CONFIG.gameMode === 'koth') updateQueues();
+            if (CONFIG.gameMode === 'tournament') renderBracket();
+            updateRoundInfo();
+            resetVoteState();
+
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('championOverlay').classList.remove('active');
+            document.getElementById('resultOverlay').classList.remove('active');
+
+            showToast(CONFIG.language === 'de' ? 'Gemischt & bereit!' : 'Shuffled & ready!', 2000);
+        }
+
+        function setupTournamentBracket(indices) {
+            const n = indices.length;
+            let bracketSize = 2;
+            while (bracketSize < n) bracketSize *= 2;
+
+            let byeCount = bracketSize - n;
+            let itemsToUse = indices.slice();
+            let discarded = [];
+
+            if (byeCount > bracketSize * 0.25 && bracketSize > 2) {
+                const smallerBracket = bracketSize / 2;
+                const excess = n - smallerBracket;
+                discarded = itemsToUse.splice(smallerBracket, excess);
+                bracketSize = smallerBracket;
+                byeCount = 0;
+            }
+
+            const totalRounds = Math.log2(bracketSize);
+            const firstRoundMatchCount = bracketSize / 2;
+
+            const matches = [];
+            let matchId = 0;
+            let itemPtr = 0;
+
+            for (let i = 0; i < firstRoundMatchCount; i++) {
+                const match = {
+                    id: matchId++, round: 0, position: i,
+                    slot1: -2, slot2: -2,
+                    winner: -1, loser: -1,
+                    score1: 0, score2: 0,
+                    played: false, isBye: false
+                };
+
+                const byeInterval = byeCount > 0 ? firstRoundMatchCount / byeCount : Infinity;
+                const isByeSlot = byeCount > 0 && (i % Math.ceil(byeInterval)) === 0 &&
+                    matches.filter(m => m.isBye).length < byeCount;
+
+                if (isByeSlot && itemPtr < itemsToUse.length) {
+                    match.slot1 = itemsToUse[itemPtr++];
+                    match.slot2 = -1;
+                    match.winner = match.slot1;
+                    match.played = true;
+                    match.isBye = true;
+                } else if (itemPtr + 1 < itemsToUse.length) {
+                    match.slot1 = itemsToUse[itemPtr++];
+                    match.slot2 = itemsToUse[itemPtr++];
+                } else if (itemPtr < itemsToUse.length) {
+                    match.slot1 = itemsToUse[itemPtr++];
+                    match.slot2 = -1;
+                    match.winner = match.slot1;
+                    match.played = true;
+                    match.isBye = true;
+                }
+
+                matches.push(match);
+            }
+
+            for (let r = 1; r < totalRounds; r++) {
+                const matchesInRound = bracketSize / Math.pow(2, r + 1);
+                for (let i = 0; i < matchesInRound; i++) {
+                    matches.push({
+                        id: matchId++, round: r, position: i,
+                        slot1: -2, slot2: -2,
+                        winner: -1, loser: -1,
+                        score1: 0, score2: 0,
+                        played: false, isBye: false
+                    });
+                }
+            }
+
+            for (let r = 0; r < totalRounds - 1; r++) {
+                const roundMatches = matches.filter(m => m.round === r);
+                const nextRoundMatches = matches.filter(m => m.round === r + 1);
+                for (let i = 0; i < roundMatches.length; i += 2) {
+                    const nextMatch = nextRoundMatches[Math.floor(i / 2)];
+                    if (!nextMatch) continue;
+                    if (roundMatches[i] && roundMatches[i].winner >= 0) nextMatch.slot1 = roundMatches[i].winner;
+                    if (roundMatches[i + 1] && roundMatches[i + 1].winner >= 0) nextMatch.slot2 = roundMatches[i + 1].winner;
+                    if (nextMatch.slot1 >= 0 && nextMatch.slot2 === -1) {
+                        nextMatch.winner = nextMatch.slot1;
+                        nextMatch.played = true; nextMatch.isBye = true;
+                    }
+                    if (nextMatch.slot2 >= 0 && nextMatch.slot1 === -1) {
+                        nextMatch.winner = nextMatch.slot2;
+                        nextMatch.played = true; nextMatch.isBye = true;
+                    }
+                }
+            }
+
+            const firstMatch = findNextMatch(matches);
+
+            gameState = {
+                queue: [],
+                eliminated: [],
+                discarded: discarded,
+                champion: firstMatch ? firstMatch.slot1 : -1,
+                challenger: firstMatch ? firstMatch.slot2 : -1,
+                matchNumber: 1,
+                totalMatches: n - 1 - discarded.length,
+                wins: {},
+                isComplete: false,
+                bracket: {
+                    matches: matches,
+                    totalRounds: totalRounds,
+                    bracketSize: bracketSize,
+                    currentMatchId: firstMatch ? firstMatch.id : -1,
+                    viewingRound: firstMatch ? firstMatch.round : 0
+                }
+            };
+
+            if (discarded.length > 0) {
+                const names = discarded.map(i => CONFIG.items[i]?.name || '?').join(', ');
+                showToast(`${discarded.length} items excluded: ${names}`, 3500);
+            }
+        }
+
+        function findNextMatch(matches) {
+            const maxRound = Math.max(...matches.map(m => m.round));
+            for (let r = 0; r <= maxRound; r++) {
+                const roundMatches = matches.filter(m => m.round === r && !m.played)
+                    .sort((a, b) => a.position - b.position);
+                for (const m of roundMatches) {
+                    if (m.slot1 >= 0 && m.slot2 >= 0) return m;
+                }
+            }
+            return null;
+        }
+
+        function advanceTournament(winnerIdx, loserIdx, score1, score2) {
+            const bracket = gameState.bracket;
+            const currentMatch = bracket.matches.find(m => m.id === bracket.currentMatchId);
+            if (!currentMatch) return;
+
+            currentMatch.winner = winnerIdx;
+            currentMatch.loser = loserIdx;
+            currentMatch.score1 = currentMatch.slot1 === winnerIdx ? score1 : score2;
+            currentMatch.score2 = currentMatch.slot2 === winnerIdx ? score1 : score2;
+            currentMatch.played = true;
+
+            gameState.eliminated.push(loserIdx);
+
+            const nextRoundMatches = bracket.matches.filter(m => m.round === currentMatch.round + 1);
+            if (nextRoundMatches.length > 0) {
+                const nextMatchIdx = Math.floor(currentMatch.position / 2);
+                const nextMatch = nextRoundMatches[nextMatchIdx];
+                if (nextMatch) {
+                    if (currentMatch.position % 2 === 0) nextMatch.slot1 = winnerIdx;
+                    else nextMatch.slot2 = winnerIdx;
+                }
+            }
+
+            const nextMatch = findNextMatch(bracket.matches);
+            if (nextMatch) {
+                bracket.currentMatchId = nextMatch.id;
+                bracket.viewingRound = nextMatch.round;
+                gameState.champion = nextMatch.slot1;
+                gameState.challenger = nextMatch.slot2;
+                gameState.matchNumber++;
+            } else {
+                gameState.champion = winnerIdx;
+                gameState.isComplete = true;
+            }
+
+            saveToLocalStorage();
+        }
+
+        function renderBracket() {
+            const bracketView = document.getElementById('bracketView');
+            if (!bracketView || !gameState.bracket) return;
+
+            const bracket = gameState.bracket;
+            const totalRounds = bracket.totalRounds;
+            const matches = bracket.matches;
+            const currentMatchId = bracket.currentMatchId;
+            const currentMatch = matches.find(m => m.id === currentMatchId);
+            const activeRound = currentMatch ? currentMatch.round : totalRounds - 1;
+
+            let html = '';
+
+            const finalMatch = matches.find(m => m.round === totalRounds - 1);
+            const hasChampion = gameState.isComplete && finalMatch && finalMatch.winner >= 0;
+            const champItem = hasChampion ? CONFIG.items[finalMatch.winner] : null;
+
+            html += `<div class="champion-frame ${hasChampion ? 'revealed' : ''}" id="championFrame">`;
+            if (champItem) {
+                html += `<div style="text-align:center;">
+                    <div class="champion-frame-inner">
+                        <svg class="champion-wreath" viewBox="0 0 104 104" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M28 82 C20 70 14 55 16 40 C18 32 22 28 26 30 C22 38 20 50 24 62 C26 68 28 74 28 82Z" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.75"/>
+                            <path d="M76 82 C84 70 90 55 88 40 C86 32 82 28 78 30 C82 38 84 50 80 62 C78 68 76 74 76 82Z" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.75"/>
+                            <polygon points="52,6 54,12 60,12 55,16 57,22 52,18 47,22 49,16 44,12 50,12" fill="var(--accent)" opacity="0.7"/>
+                        </svg>
+                        <img class="champion-frame-img" src="${getItemImage(champItem)}" alt="">
+                    </div>
+                    ${CONFIG.showLabels ? `<div class="champion-frame-name">${escapeHtml(champItem.name)}</div>` : ''}
+                </div>`;
+            } else {
+                html += `<div style="text-align:center;">
+                    <div class="champion-frame-inner">
+                        <div style="width:60px; height:60px; border-radius:8px; border:2px dashed var(--border-strong); display:flex; align-items:center; justify-content:center; position:relative; z-index:2;">
+                            <span style="font-family:var(--font-display); font-size:18px; color:var(--text-muted);">?</span>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            html += '</div>';
+
+            for (let r = totalRounds - 1; r >= 0; r--) {
+                const roundMatches = matches.filter(m => m.round === r).sort((a, b) => a.position - b.position);
+                const isActive = r === activeRound;
+                const isFinals = r === totalRounds - 1;
+                const isSemis = r === totalRounds - 2;
+                const isQuarters = r === totalRounds - 3;
+
+                const label = isFinals ? 'FINAL' : isSemis ? 'SEMI' : isQuarters ? 'QF' : `R${r + 1}`;
+                if (r < totalRounds - 1) html += '<div class="bracket-connectors"></div>';
+
+                const rowClass = isFinals ? 'finals-row' : isSemis ? 'semi-row' : '';
+                html += `<div class="bracket-round-row ${rowClass}">`;
+                html += `<div class="round-label-side ${isActive ? 'active-round' : ''}">${label}</div>`;
+
+                roundMatches.forEach(match => {
+                    const isActiveMatch = match.id === currentMatchId && !match.played;
+                    const isCompleted = match.played;
+                    const isBye = match.isBye;
+                    html += `<div class="bracket-match-box">`;
+                    html += `<div class="match-card ${isActiveMatch ? 'active-card' : ''} ${isCompleted && !isBye ? 'completed-card' : ''} ${isBye ? 'bye-card' : ''}">`;
+                    html += renderCardSlot(match.slot1, match, 1);
+                    html += renderCardSlot(match.slot2, match, 2);
+                    html += '</div></div>';
+                });
+
+                html += '</div>';
+            }
+
+            bracketView.innerHTML = html;
+        }
+
+        function renderCardSlot(itemIdx, match, slotNum) {
+            const score = slotNum === 1 ? match.score1 : match.score2;
+            const isWinner = match.played && match.winner === itemIdx;
+            const isLoser = match.played && match.loser === itemIdx;
+
+            if (itemIdx === -2) return `<div class="match-card-slot"><div class="mc-bye">TBD</div></div>`;
+            if (itemIdx === -1 || itemIdx === undefined) return `<div class="match-card-slot"><div class="mc-bye">BYE</div></div>`;
+
+            const item = CONFIG.items[itemIdx];
+            if (!item) return `<div class="match-card-slot"><div class="mc-bye">?</div></div>`;
+
+            const cls = isWinner ? 'mc-winner' : isLoser ? 'mc-loser' : '';
+            return `<div class="match-card-slot ${cls}">
+                <img class="mc-img" src="${getItemImage(item)}" alt="">
+                ${CONFIG.showLabels ? `<div class="mc-name">${escapeHtml(item.name)}</div>` : ''}
+                ${match.played && !match.isBye ? `<div class="mc-score">${score}</div>` : ''}
+            </div>`;
+        }
+
+        function switchView() {
+            const kothView = document.getElementById('kothView');
+            const bracketView = document.getElementById('bracketView');
+            if (CONFIG.gameMode === 'tournament') {
+                kothView.classList.add('hidden');
+                bracketView.classList.add('active');
+            } else {
+                kothView.classList.remove('hidden');
+                bracketView.classList.remove('active');
+            }
+        }
+
+        function setImgOrPlaceholder(imgId, placeholderId, src) {
+            const img = document.getElementById(imgId);
+            const ph = document.getElementById(placeholderId);
+            if (!img || !ph) return;
+            if (src) {
+                img.src = src;
+                img.style.display = 'block';
+                ph.style.display = 'none';
+            } else {
+                img.src = '';
+                img.style.display = 'none';
+                ph.style.display = 'flex';
+            }
+        }
+
+        function updateMatchDisplay() {
+            const f1 = CONFIG.items[gameState.champion];
+            const f2 = CONFIG.items[gameState.challenger];
+            const hasMatch = !!(f1 && f2);
+
+            const banner = document.getElementById('arenaEmptyBanner');
+            if (!hasMatch) {
+                banner.classList.add('visible');
+                document.getElementById('arenaEmptyText').textContent =
+                    CONFIG.items.length < 2 ? t('arenaEmptyNeedItems') : t('arenaEmptyNeedShuffle');
+            } else {
+                banner.classList.remove('visible');
+            }
+
+            setImgOrPlaceholder('fighter1Img', 'fighter1Placeholder', f1 ? getItemImage(f1) : '');
+            setImgOrPlaceholder('thumbLeft', 'thumbLeftPlaceholder', f1 ? getItemImage(f1) : '');
+            document.getElementById('fighter1Name').textContent = f1 ? (f1.name || '—') : '—';
+            document.getElementById('nameLeft').textContent = f1 ? (f1.name || '—') : '—';
+
+            setImgOrPlaceholder('fighter2Img', 'fighter2Placeholder', f2 ? getItemImage(f2) : '');
+            setImgOrPlaceholder('thumbRight', 'thumbRightPlaceholder', f2 ? getItemImage(f2) : '');
+            document.getElementById('fighter2Name').textContent = f2 ? (f2.name || '—') : '—';
+            document.getElementById('nameRight').textContent = f2 ? (f2.name || '—') : '—';
+
+            document.getElementById('vsMatchNum').textContent = gameState.matchNumber > 0 ? `Match ${gameState.matchNumber}` : '—';
+            document.getElementById('startBtn').disabled = !hasMatch || gameState.isComplete || isVoting;
+
+            document.getElementById('fighter1').className = 'fighter';
+            document.getElementById('fighter2').className = 'fighter';
+
+            ['fighter1Votes', 'fighter2Votes', 'fighter1Bar', 'fighter2Bar'].forEach(id => {
+                document.getElementById(id).classList.remove('visible');
+            });
+
+            updateFighterLabels();
+        }
+
+        function updateQueues() {
+            const showName = CONFIG.showLabels;
+            const waitingEl = document.getElementById('waitingQueue');
+            waitingEl.innerHTML = '';
+            gameState.queue.forEach(idx => {
+                const item = CONFIG.items[idx];
+                if (!item) return;
+                const div = document.createElement('div');
+                div.className = 'queue-item';
+                div.innerHTML = `<img src="${getItemImage(item)}" alt="${escapeHtml(item.name)}">${showName ? `<div class="queue-item-name">${escapeHtml(item.name)}</div>` : ''}`;
+                waitingEl.appendChild(div);
+            });
+            document.getElementById('waitingCount').textContent = `(${gameState.queue.length})`;
+
+            const elimEl = document.getElementById('eliminatedQueue');
+            elimEl.innerHTML = '';
+            gameState.eliminated.forEach(idx => {
+                const item = CONFIG.items[idx];
+                if (!item) return;
+                const div = document.createElement('div');
+                div.className = 'queue-item eliminated';
+                div.innerHTML = `<img src="${getItemImage(item)}" alt="${escapeHtml(item.name)}">${showName ? `<div class="queue-item-name">${escapeHtml(item.name)}</div>` : ''}`;
+                elimEl.appendChild(div);
+            });
+            document.getElementById('eliminatedCount').textContent = `(${gameState.eliminated.length})`;
+        }
+
+        function updateRoundInfo() {
+            if (CONFIG.gameMode === 'tournament' && gameState.bracket) {
+                const bracket = gameState.bracket;
+                const cur = bracket.matches.find(m => m.id === bracket.currentMatchId);
+                let roundName = 'Tournament';
+                if (cur) {
+                    const rem = bracket.totalRounds - cur.round;
+                    roundName = rem === 1 ? 'Final' : rem === 2 ? 'Semifinal' : rem === 3 ? 'Quarterfinal' : `Round ${cur.round + 1}`;
+                }
+                document.getElementById('roundInfo').textContent = `${roundName} • Match ${gameState.matchNumber}/${gameState.totalMatches}`;
+            } else {
+                document.getElementById('roundInfo').textContent = `Match ${gameState.matchNumber}/${gameState.totalMatches}`;
+            }
+        }
+
+        function resolveMatch() {
+            const v1 = votes[1];
+            const v2 = votes[2];
+            const total = v1 + v2;
+
+            document.getElementById('fighter1Votes').textContent = `${v1} vote${v1 !== 1 ? 's' : ''} (${total > 0 ? ((v1 / total) * 100).toFixed(0) : 0}%)`;
+            document.getElementById('fighter2Votes').textContent = `${v2} vote${v2 !== 1 ? 's' : ''} (${total > 0 ? ((v2 / total) * 100).toFixed(0) : 0}%)`;
+            ['fighter1Votes', 'fighter2Votes', 'fighter1Bar', 'fighter2Bar'].forEach(id => {
+                document.getElementById(id).classList.add('visible');
+            });
+            document.getElementById('fighter1Fill').style.width = total > 0 ? ((v1 / total) * 100) + '%' : '50%';
+            document.getElementById('fighter2Fill').style.width = total > 0 ? ((v2 / total) * 100) + '%' : '50%';
+
+            let winnerIdx, loserIdx;
+            if (v1 >= v2) {
+                winnerIdx = gameState.champion;
+                loserIdx = gameState.challenger;
+                document.getElementById('fighter1').classList.add('winner');
+                document.getElementById('fighter2').classList.add('loser');
+            } else {
+                winnerIdx = gameState.challenger;
+                loserIdx = gameState.champion;
+                document.getElementById('fighter2').classList.add('winner');
+                document.getElementById('fighter1').classList.add('loser');
+            }
+
+            gameState.wins[winnerIdx] = (gameState.wins[winnerIdx] || 0) + 1;
+            showResultOverlay(winnerIdx, loserIdx, v1, v2);
+
+            if (CONFIG.gameMode === 'tournament' && gameState.bracket) {
+                advanceTournament(winnerIdx, loserIdx, v1, v2);
+
+                if (gameState.isComplete) {
+                    saveToLocalStorage();
+                    renderBracket();
+                    resultTimeout = setTimeout(() => {
+                        document.getElementById('resultOverlay').classList.remove('active');
+                        showChampionScreen(winnerIdx);
+                    }, 2500);
+                    return;
+                }
+
+                saveToLocalStorage();
+                renderBracket();
+                updateRoundInfo();
+
+                resultTimeout = setTimeout(() => {
+                    document.getElementById('resultOverlay').classList.remove('active');
+                    updateMatchDisplay();
+                    needsPauseIntro = true;
+                    if (CONFIG.pauseDuration > 0) startPause();
+                }, 2500);
+            } else {
+                gameState.eliminated.push(loserIdx);
+
+                if (gameState.queue.length === 0) {
+                    gameState.champion = winnerIdx;
+                    gameState.isComplete = true;
+                    saveToLocalStorage();
+                    updateQueues();
+                    resultTimeout = setTimeout(() => {
+                        document.getElementById('resultOverlay').classList.remove('active');
+                        showChampionScreen(winnerIdx);
+                    }, 2500);
+                    return;
+                }
+
+                gameState.champion = winnerIdx;
+                gameState.challenger = gameState.queue.shift();
+                gameState.matchNumber++;
+
+                saveToLocalStorage();
+                updateQueues();
+                updateRoundInfo();
+
+                resultTimeout = setTimeout(() => {
+                    document.getElementById('resultOverlay').classList.remove('active');
+                    updateMatchDisplay();
+                    needsPauseIntro = true;
+                    if (CONFIG.pauseDuration > 0) startPause();
+                }, 2500);
+            }
+        }
+
+        function showResultOverlay(winnerIdx, loserIdx, v1, v2) {
+            const leftItem = CONFIG.items[gameState.champion];
+            const rightItem = CONFIG.items[gameState.challenger];
+            const total = v1 + v2;
+            const leftIsWinner = winnerIdx === gameState.champion;
+
+            document.getElementById('resultMessage').innerHTML = `
+                <div class="result-title">${t('winnerTitle')}</div>
+                <div class="result-fighters">
+                    <div style="text-align:center;">
+                        <img class="result-fighter-img" id="resultLeftImg" src="${getItemImage(leftItem)}" alt="">
+                        <div class="result-fighter-label ${leftIsWinner ? 'winner-label' : 'loser-label'}">${CONFIG.showLabels ? escapeHtml(leftItem?.name) : ''}</div>
+                    </div>
+                    <div style="font-family:var(--font-display); font-size:28px; color:var(--text-muted); padding:0 10px;">VS</div>
+                    <div style="text-align:center;">
+                        <img class="result-fighter-img" id="resultRightImg" src="${getItemImage(rightItem)}" alt="">
+                        <div class="result-fighter-label ${!leftIsWinner ? 'winner-label' : 'loser-label'}">${CONFIG.showLabels ? escapeHtml(rightItem?.name) : ''}</div>
+                    </div>
+                </div>
+                <div class="result-score">${v1} — ${v2}</div>
+                <div class="result-detail">${total} votes • ${voters.size} voter${voters.size !== 1 ? 's' : ''}</div>
+            `;
+            document.getElementById('resultOverlay').classList.add('active');
+
+            setTimeout(() => {
+                const leftImg = document.getElementById('resultLeftImg');
+                const rightImg = document.getElementById('resultRightImg');
+                if (leftIsWinner) {
+                    if (leftImg) leftImg.classList.add('winner-anim');
+                    if (rightImg) rightImg.classList.add('loser-anim');
+                } else {
+                    if (rightImg) rightImg.classList.add('winner-anim');
+                    if (leftImg) leftImg.classList.add('loser-anim');
+                }
+            }, 80);
+        }
+
+        function showChampionScreen(winnerIdx) {
+            const champ = CONFIG.items[winnerIdx];
+            const wins = gameState.wins[winnerIdx] || 0;
+            playTone(660, 0.18, 0.08);
+
+            document.getElementById('championMessage').innerHTML = `
+                <div class="champion-title">${t('championTitle')}</div>
+                <img class="champion-image" src="${getItemImage(champ)}" alt="${escapeHtml(champ?.name)}">
+                ${CONFIG.showLabels ? `<div class="champion-name">${escapeHtml(champ?.name)}</div>` : ''}
+                <div class="champion-stats">${wins} win${wins !== 1 ? 's' : ''} • ${gameState.eliminated.length} eliminated</div>
+                <div class="champion-actions">
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('championOverlay').classList.remove('active')">${t('btnViewResults')}</button>
+                    <button type="button" class="btn-primary" onclick="shuffleAndRestart()">${t('btnPlayAgain')}</button>
+                </div>
+            `;
+            document.getElementById('championOverlay').classList.add('active');
+        }
+
+        function skipMatch() {
+            if (isVoting) endVoting();
+            else if (isPaused) skipPause();
+        }
+
+        // ==========================================
+        // VOTING SYSTEM & CHART
+        // ==========================================
+        function initChart() {
+            if (chart) chart.destroy();
+            const ctx = document.getElementById('votingChart').getContext('2d');
+            const hue = CONFIG.accentHue ?? 40;
+            const sat = CONFIG.accentSat ?? 48;
+            const light = CONFIG.accentLight ?? 54;
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['!1', '!2'],
+                    datasets: [{
+                        label: 'Votes',
+                        data: [0, 0],
+                        backgroundColor: [`hsla(${hue}, ${sat}%, ${light}%, 0.85)`, 'rgba(201, 88, 99, 0.85)'],
+                        borderColor: [`hsl(${hue}, ${sat}%, ${light}%)`, '#c95863'],
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#94a3b8', font: { family: 'Inter', size: 11 }, stepSize: 1 },
+                            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }
+                        },
+                        x: {
+                            ticks: { color: '#f1f5f9', font: { family: 'Barlow Condensed', size: 22, weight: '700' } },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } },
+                    animation: { duration: 220 }
+                }
+            });
+        }
+
+        function updateChart() {
+            if (!chart) return;
+            chart.data.datasets[0].data = [votes[1], votes[2]];
+            chart.update();
+        }
+
+        function updateStats() {
+            const total = votes[1] + votes[2];
+            document.getElementById('totalVotes').textContent = total;
+            document.getElementById('uniqueVoters').textContent = voters.size;
+            const leaderEl = document.getElementById('leader');
+
+            if (total > 0) {
+                const leaderName = votes[1] === votes[2]
+                    ? 'Tie'
+                    : votes[1] > votes[2]
+                        ? (CONFIG.items[gameState.champion]?.name || '!1')
+                        : (CONFIG.items[gameState.challenger]?.name || '!2');
+                leaderEl.textContent = leaderName;
+                leaderEl.title = leaderName;
+                leaderEl.style.fontSize = leaderName.length > 12 ? '16px' : leaderName.length > 7 ? '20px' : '24px';
+            } else {
+                leaderEl.textContent = '—';
+                leaderEl.style.fontSize = '24px';
+            }
+        }
+
+        function pushVoteTick(username, cmd) {
+            if (CONFIG.showVoteTicker === false) return;
+            const ticker = document.getElementById('voteTicker');
+            if (!ticker) return;
+            const el = document.createElement('div');
+            el.className = 'vote-tick';
+            el.textContent = `${username}: ${cmd}`;
+            ticker.prepend(el);
+            while (ticker.children.length > 3) ticker.lastElementChild.remove();
+            setTimeout(() => el.remove(), 2400);
+        }
+
+        function resetVoteState() {
+            votes = { 1: 0, 2: 0 };
+            userVotes.clear();
+            voters = new Set();
+            isVoting = false;
+            votingPaused = false;
+            clearInterval(timerInterval);
+            document.getElementById('voteTicker').innerHTML = '';
+            timeRemaining = CONFIG.votingDuration;
+            document.getElementById('timer').textContent = timeRemaining;
+            document.getElementById('timer').classList.remove('finished');
+            const hasMatch = gameState.champion >= 0 && gameState.challenger >= 0 && !gameState.isComplete;
+            document.getElementById('startBtn').disabled = !hasMatch;
+            setPauseButtonState(false, true);
+            updateChart();
+            updateStats();
+        }
+
+        function setPauseButtonState(paused, disabled) {
+            const btn = document.getElementById('pauseBtn');
+            const icon = document.getElementById('pauseBtnIcon');
+            btn.disabled = disabled;
+            btn.classList.toggle('paused', paused);
+            icon.innerHTML = paused
+                ? '<polygon points="6 4 20 12 6 20 6 4"/>'
+                : '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+        }
+
+        function startVoting() {
+            if (isVoting || gameState.isComplete) return;
+            if (gameState.champion < 0 || gameState.challenger < 0) {
+                showToast(CONFIG.language === 'de' ? 'Zuerst Items mischen!' : 'Shuffle items first!', 2000);
+                return;
+            }
+
+            if (needsPauseIntro && CONFIG.pauseDuration > 0) {
+                needsPauseIntro = false;
+                startPause();
+                return;
+            }
+            needsPauseIntro = false;
+
+            isVoting = true;
+            votingPaused = false;
+            timeRemaining = CONFIG.votingDuration;
+            document.getElementById('timer').textContent = timeRemaining;
+            document.getElementById('timer').classList.remove('finished');
+            document.getElementById('startBtn').disabled = true;
+            setPauseButtonState(false, false);
+            playTone(520, 0.08, 0.05);
+
+            timerInterval = setInterval(() => {
+                if (!votingPaused) {
+                    timeRemaining--;
+                    document.getElementById('timer').textContent = timeRemaining;
+                    if (timeRemaining > 0 && timeRemaining <= 3) playTone(440, 0.05, 0.04);
+                    if (timeRemaining <= 0) endVoting();
+                }
+            }, 1000);
+        }
+
+        function endVoting() {
+            isVoting = false;
+            votingPaused = false;
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = '0';
+            document.getElementById('timer').classList.add('finished');
+            document.getElementById('startBtn').disabled = false;
+            setPauseButtonState(false, true);
+            playTone(620, 0.14, 0.06);
+
+            const total = votes[1] + votes[2];
+            if (total === 0) {
+                showToast(CONFIG.language === 'de' ? 'Keine Stimmen — Zufallssieger' : 'No votes — random winner', 2000);
+                votes[Math.random() < 0.5 ? 1 : 2] = 1;
+            }
+
+            resolveMatch();
+        }
+
+        function togglePause() {
+            if (!isVoting) return;
+            votingPaused = !votingPaused;
+            setPauseButtonState(votingPaused, false);
+        }
+
+        function processVote(username, message) {
+            if (!isVoting || votingPaused) return;
+            const raw = message.trim();
+            const token = CONFIG.allowTextAfterCmd !== false ? raw.split(/\s+/)[0] : raw;
+            if (token !== '!1' && token !== '!2') return;
+            const voteNum = token === '!1' ? 1 : 2;
+
+            if (allowMultiVote) {
+                votes[voteNum]++;
+                voters.add(username);
+            } else {
+                const prev = userVotes.get(username);
+                if (prev === voteNum) return;
+                if (prev && votes[prev] > 0) votes[prev]--;
+                userVotes.set(username, voteNum);
+                voters.add(username);
+                votes[voteNum]++;
+            }
+            pushVoteTick(username, token);
+            updateChart();
+            updateStats();
+        }
+
+        function streamerVote(num) {
+            if (!isVoting || votingPaused) return;
+            votes[num]++;
+            voters.add('__streamer__');
+            updateChart();
+            updateStats();
+            showToast(`Voted !${num}`, 1200);
+        }
+
+        function toggleVoteMode() {
+            allowMultiVote = !allowMultiVote;
+            const sw = document.getElementById('toggleSwitch');
+            sw.classList.toggle('active', allowMultiVote);
+            sw.setAttribute('aria-pressed', allowMultiVote ? 'true' : 'false');
+        }
+
+        // ==========================================
+        // PAUSE SYSTEM
+        // ==========================================
+        function startPause() {
+            if (gameState.isComplete) return;
+
+            isPaused = true;
+            pauseTimeRemaining = CONFIG.pauseDuration;
+
+            const f1 = CONFIG.items[gameState.champion];
+            const f2 = CONFIG.items[gameState.challenger];
+
+            let criteriaHtml = '';
+            if (CONFIG.criteria.enabled && CONFIG.criteria.items.length > 0) {
+                const valid = CONFIG.criteria.items.filter(c => c && c.trim());
+                if (valid.length > 0) {
+                    criteriaHtml = `
+                        <div class="pause-criteria">
+                            <div class="pause-criteria-title">${t('rateBy')}</div>
+                            ${valid.map(c => `<div class="pause-criterion">${escapeHtml(c)}</div>`).join('')}
+                        </div>`;
+                }
+            }
+
+            document.getElementById('pauseMatchup').innerHTML = `
+                <div class="pause-fighter">
+                    <img class="pause-fighter-image left" src="${getItemImage(f1)}" alt="">
+                    ${CONFIG.showLabels ? `<div class="pause-fighter-name">${escapeHtml(f1?.name || '—')}</div>` : ''}
+                </div>
+                <div class="pause-vs">VS</div>
+                <div class="pause-fighter">
+                    <img class="pause-fighter-image right" src="${getItemImage(f2)}" alt="">
+                    ${CONFIG.showLabels ? `<div class="pause-fighter-name">${escapeHtml(f2?.name || '—')}</div>` : ''}
+                </div>
+            `;
+
+            const pauseContent = document.querySelector('.pause-content');
+            const existingCriteria = pauseContent.querySelector('.pause-criteria');
+            if (existingCriteria) existingCriteria.remove();
+            if (criteriaHtml) {
+                document.getElementById('pauseMatchup').insertAdjacentHTML('afterend', criteriaHtml);
+            }
+
+            document.getElementById('pauseTimer').textContent = pauseTimeRemaining;
+            document.getElementById('pauseOverlay').classList.add('active');
+
+            pauseInterval = setInterval(() => {
+                pauseTimeRemaining--;
+                document.getElementById('pauseTimer').textContent = pauseTimeRemaining;
+                if (pauseTimeRemaining <= 0) endPause();
+            }, 1000);
+        }
+
+        function endPause() {
+            isPaused = false;
+            needsPauseIntro = false;
+            clearInterval(pauseInterval);
+            document.getElementById('pauseOverlay').classList.remove('active');
+            updateMatchDisplay();
+            resetVoteState();
+            startVoting();
+        }
+
+        function skipPause() {
+            clearInterval(pauseInterval);
+            endPause();
+        }
+
+        // ==========================================
+        // TWITCH IRC WEBSOCKET (with Tags for Mod Commands)
+        // ==========================================
+        function setConnectionUI(state, label) {
+            document.getElementById('connectionPill').className = `connection-pill ${state}`;
+            document.getElementById('connectionText').textContent = label;
+        }
+
+        function connectToChat() {
+            clearTimeout(wsReconnectTimer);
+            if (!CONFIG.token || !CONFIG.channel) {
+                setConnectionUI('disconnected', t('connNone'));
+                return;
+            }
+
+            CONFIG.token = CONFIG.token.replace(/\s+/g, '');
+            if (!CONFIG.token.startsWith('oauth:')) CONFIG.token = 'oauth:' + CONFIG.token.replace(/^oauth:/i, '');
+            CONFIG.channel = CONFIG.channel.trim().toLowerCase().replace(/\s+/g, '');
+
+            if (!ws || ws.readyState === WebSocket.CLOSED) {
+                setConnectionUI('connecting', t('connConnecting'));
+            }
+
+            try {
+                if (ws) {
+                    const oldWs = ws;
+                    ws = null;
+                    oldWs.onopen = oldWs.onmessage = oldWs.onerror = oldWs.onclose = null;
+                    oldWs.close();
+                }
+
+                const currentSocket = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+                ws = currentSocket;
+
+                currentSocket.onopen = () => {
+                    if (ws !== currentSocket) return;
+                    currentSocket.send('CAP REQ :twitch.tv/tags');
+                    currentSocket.send(`PASS ${CONFIG.token}`);
+                    currentSocket.send(`NICK ${CONFIG.channel}`);
+                    currentSocket.send(`JOIN #${CONFIG.channel}`);
+                };
+
+                currentSocket.onmessage = (event) => {
+                    if (ws !== currentSocket) return;
+                    const lines = String(event.data).split('\r\n').filter(Boolean);
+                    for (const line of lines) {
+                        if (line.startsWith('PING')) {
+                            currentSocket.send('PONG :tmi.twitch.tv');
+                            continue;
+                        }
+                        if (line.includes(' 001 ')) {
+                            wsReconnectDelay = 3000;
+                            setConnectionUI('connected', `#${CONFIG.channel}`);
+                            continue;
+                        }
+                        if (line.includes('NOTICE') && line.includes('Login authentication failed')) {
+                            setConnectionUI('disconnected', t('connAuthFail'));
+                            wsManualClose = true;
+                            currentSocket.close();
+                            ws = null;
+                            return;
+                        }
+                        if (line.includes('PRIVMSG')) {
+                            const privIdx = line.indexOf('PRIVMSG');
+                            const prefix = line.slice(0, privIdx);
+                            const rest = line.slice(privIdx);
+                            const userMatch = prefix.match(/:([a-zA-Z0-9_]+)!/);
+                            const msgMatch = rest.match(/PRIVMSG #[^\s]+ :(.+)/);
+                            if (!userMatch || !msgMatch) continue;
+                            const username = userMatch[1];
+                            const chatMessage = msgMatch[1].trim();
+                            const isModOrBroadcaster = prefix.includes('mod=1') || prefix.includes('broadcaster/1') || username.toLowerCase() === CONFIG.channel;
+                            if (CONFIG.modCommands && isModOrBroadcaster && handleModCommand(chatMessage)) continue;
+                            processVote(username, chatMessage);
+                        }
+                    }
+                };
+
+                currentSocket.onerror = () => {
+                    if (ws !== currentSocket) return;
+                };
+
+                currentSocket.onclose = () => {
+                    if (ws !== currentSocket) return;
+                    ws = null;
+                    if (!wsManualClose && CONFIG.token && CONFIG.channel) {
+                        if (wsReconnectDelay >= 12000) setConnectionUI('connecting', t('connReconnecting'));
+                        wsReconnectTimer = setTimeout(connectToChat, wsReconnectDelay);
+                        wsReconnectDelay = Math.min(30000, wsReconnectDelay * 2);
+                    } else if (!wsManualClose) {
+                        setConnectionUI('disconnected', t('connDisconnected'));
+                    }
+                };
+            } catch {
+                setConnectionUI('disconnected', t('connError'));
+            }
+        }
+
+        function handleModCommand(msg) {
+            const lower = msg.toLowerCase().trim();
+            if (lower === '!battle start') { if (isPaused) skipPause(); else startVoting(); return true; }
+            if (lower === '!battle pause') { togglePause(); return true; }
+            if (lower === '!battle next' || lower === '!battle skip') { skipMatch(); return true; }
+            if (lower === '!battle reset') { shuffleAndRestart(); return true; }
+            return false;
+        }
+
+        // ==========================================
+        // IMAGE UPLOAD (IndexedDB + Center-Cropped WebP)
+        // ==========================================
+        function setupImageUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+            uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+            uploadArea.addEventListener('drop', (e) => { e.preventDefault(); uploadArea.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+            fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        }
+
+        function handleFiles(files) {
+            pendingUploads = [];
+            document.getElementById('uploadTable').innerHTML = '';
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = (e) => processImage(e.target.result, file.name);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function processImage(dataUrl, filename) {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 200; canvas.height = 200;
+                const size = Math.min(img.width, img.height);
+                ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, 200, 200);
+                const processedData = canvas.toDataURL('image/webp', 0.88);
+                const cleanName = filename.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+                pendingUploads.push({ image: processedData, name: cleanName, filename });
+                renderUploadTable();
+            };
+            img.src = dataUrl;
+        }
+
+        function renderUploadTable() {
+            const table = document.getElementById('uploadTable');
+            table.classList.add('active');
+            let html = CONFIG.showLabels
+                ? `<div class="upload-quick-actions"><button type="button" class="btn-small" onclick="fillFromFilenames()">Use Filenames</button><button type="button" class="btn-small" onclick="clearAllNames()">Clear Names</button></div>`
+                : '';
+            pendingUploads.forEach((item, index) => {
+                html += `
+                    <div class="upload-item">
+                        <img class="upload-preview" src="${item.image}" alt="">
+                        <div class="upload-info">
+                            <div class="upload-filename">${escapeHtml(item.filename)}</div>
+                            ${CONFIG.showLabels
+                                ? `<input type="text" class="upload-name-input" id="uploadName${index}" value="${escapeHtml(item.name)}" placeholder="Item name">`
+                                : `<div style="color:var(--text-muted); font-size:12px;">Icons-only mode</div>`
+                            }
+                        </div>
+                        <div class="upload-actions">
+                            ${CONFIG.showLabels ? `<button type="button" class="btn-small" onclick="useFilename(${index})">Reset</button>` : ''}
+                            <button type="button" class="btn-small" onclick="removeUpload(${index})">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `<button type="button" class="btn-add" onclick="addAllUploads()" style="width:100%; margin-top:8px;">Add ${pendingUploads.length} Item${pendingUploads.length !== 1 ? 's' : ''}</button>`;
+            table.innerHTML = html;
+        }
+
+        function fillFromFilenames() { pendingUploads.forEach((item, i) => { const el = document.getElementById(`uploadName${i}`); if (el) el.value = item.name; }); }
+        function clearAllNames() { pendingUploads.forEach((_, i) => { const el = document.getElementById(`uploadName${i}`); if (el) el.value = ''; }); }
+        function useFilename(i) { const el = document.getElementById(`uploadName${i}`); if (el) el.value = pendingUploads[i].name; }
+        function removeUpload(i) {
+            pendingUploads.splice(i, 1);
+            const table = document.getElementById('uploadTable');
+            if (pendingUploads.length === 0) { table.classList.remove('active'); table.innerHTML = ''; }
+            else renderUploadTable();
+        }
+
+        async function addAllUploads() {
+            for (let i = 0; i < pendingUploads.length; i++) {
+                const item = pendingUploads[i];
+                const el = document.getElementById(`uploadName${i}`);
+                const name = el ? el.value.trim() : item.name;
+                const id = `img_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 7)}`;
+                await dbPutImage(id, item.image);
+                CONFIG.items.push({ id, name });
+            }
+            pendingUploads = [];
+            document.getElementById('uploadTable').classList.remove('active');
+            document.getElementById('uploadTable').innerHTML = '';
+            document.getElementById('fileInput').value = '';
+            saveToLocalStorage();
+            renderSettingsItems();
+            updateMatchDisplay();
+            showToast(CONFIG.language === 'de' ? 'Items hinzugefügt' : 'Items added', 1800);
+        }
+
+        function renderSettingsItems() {
+            const container = document.getElementById('itemsList');
+            const filter = (document.getElementById('itemSearchInput')?.value || '').trim().toLowerCase();
+            container.innerHTML = '';
+
+            const visible = CONFIG.items
+                .map((item, index) => ({ item, index }))
+                .filter(({ item }) => !filter || (item.name || '').toLowerCase().includes(filter));
+
+            if (visible.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-muted); font-size:13px;">${CONFIG.items.length === 0 ? t('emptyItems') : '—'}</div>`;
+            } else {
+                visible.forEach(({ item, index }) => {
+                    const div = document.createElement('div');
+                    div.className = 'settings-item';
+                    div.innerHTML = `
+                        <img class="item-thumb" src="${getItemImage(item)}" alt="">
+                        <input type="text" class="item-inline-name" value="${escapeHtml(item.name)}" placeholder="Item name" onchange="renameItem(${index}, this.value)">
+                        <button type="button" class="btn-icon delete" onclick="deleteItem(${index})" aria-label="Delete item">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                        </button>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            document.getElementById('itemCount').textContent = CONFIG.items.length;
+        }
+
+        function renameItem(index, newName) {
+            if (!CONFIG.items[index]) return;
+            CONFIG.items[index].name = newName.trim();
+            saveToLocalStorage();
+            updateMatchDisplay();
+            if (CONFIG.gameMode === 'koth') updateQueues();
+            if (CONFIG.gameMode === 'tournament' && gameState.bracket) renderBracket();
+        }
+
+        async function deleteItem(index) {
+            const item = CONFIG.items[index];
+            if (item?.id) await dbDeleteImage(item.id);
+            CONFIG.items.splice(index, 1);
+            gameState = { queue: [], eliminated: [], champion: -1, challenger: -1, matchNumber: 0, totalMatches: 0, wins: {}, isComplete: false };
+            saveToLocalStorage();
+            initializeUI();
+            showToast(CONFIG.language === 'de' ? 'Item gelöscht' : 'Item deleted', 1800);
+        }
+
+        async function clearAllItems() {
+            if (CONFIG.items.length === 0) return;
+            await dbClearImages();
+            CONFIG.items = [];
+            gameState = { queue: [], eliminated: [], champion: -1, challenger: -1, matchNumber: 0, totalMatches: 0, wins: {}, isComplete: false };
+            saveToLocalStorage();
+            initializeUI();
+            showToast(CONFIG.language === 'de' ? 'Alle Items gelöscht' : 'All items cleared', 1800);
+        }
+
+        async function clearBrowserCache() {
+            const creds = { channel: CONFIG.channel, token: CONFIG.token };
+            await dbClearImages();
+            localStorage.clear();
+            localStorage.setItem('battleCredentials', JSON.stringify(creds));
+            showToast('Clearing cache...', 1000);
+            setTimeout(() => location.reload(), 500);
+        }
+
+        // ==========================================
+        // EXPORT / IMPORT
+        // ==========================================
+        function exportProgress() {
+            const fullItems = CONFIG.items.map(it => ({ id: it.id, name: it.name, image: getItemImage(it) }));
+            const exportData = {
+                version: APP_VERSION,
+                timestamp: new Date().toISOString(),
+                config: { ...CONFIG, items: fullItems },
+                gameState
+            };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `battle_backup_${ts}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(CONFIG.language === 'de' ? 'Backup exportiert' : 'Backup exported', 2200);
+        }
+
+        function importProgress(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.config) { showToast('Invalid backup file', 3000); return; }
+                    await dbClearImages();
+                    const importedItems = [];
+                    for (let i = 0; i < (data.config.items || []).length; i++) {
+                        const it = data.config.items[i];
+                        const id = it.id || `img_${Date.now()}_${i}`;
+                        if (it.image) await dbPutImage(id, it.image);
+                        importedItems.push({ id, name: it.name || '' });
+                    }
+                    CONFIG = { ...CONFIG, ...data.config, items: importedItems };
+                    if (data.gameState) gameState = data.gameState;
+                    saveToLocalStorage();
+                    initializeUI();
+                    showToast(CONFIG.language === 'de' ? 'Backup wiederhergestellt' : 'Backup restored', 2200);
+                } catch {
+                    showToast('Error reading backup file', 3000);
+                }
+            };
+            reader.readAsText(file);
+            document.getElementById('importFile').value = '';
+        }
+
+        // ==========================================
+        // CRITERIA MANAGEMENT
+        // ==========================================
+        function renderCriteriaSettings() {
+            const container = document.getElementById('criteriaList');
+            if (!container) return;
+            container.innerHTML = '';
+            CONFIG.criteria.items.forEach((c, i) => {
+                const div = document.createElement('div');
+                div.className = 'criterion-item';
+                div.innerHTML = `
+                    <span class="criterion-number">${i + 1}.</span>
+                    <input type="text" class="criterion-input" value="${escapeHtml(c)}" placeholder="Criterion..." onchange="updateCriterion(${i}, this.value)">
+                    <button type="button" class="btn-icon delete" onclick="deleteCriterion(${i})" aria-label="Delete criterion">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+            const counter = document.getElementById('criteriaCounter');
+            if (counter) counter.textContent = `${CONFIG.criteria.items.length}/7`;
+            const addBtn = document.getElementById('addCriterionBtn');
+            if (addBtn) addBtn.disabled = CONFIG.criteria.items.length >= 7;
+        }
+
+        function addCriterion() { if (CONFIG.criteria.items.length < 7) { CONFIG.criteria.items.push(''); renderCriteriaSettings(); } }
+        function updateCriterion(index, value) { CONFIG.criteria.items[index] = value.trim(); saveToLocalStorage(); }
+        function deleteCriterion(index) { CONFIG.criteria.items.splice(index, 1); renderCriteriaSettings(); saveToLocalStorage(); }
+
+        // ==========================================
+        // LABEL VISIBILITY & TOKEN HELPER
+        // ==========================================
+        function updateFighterLabels() {
+            const show = CONFIG.showLabels;
+            document.querySelectorAll('.fighter-name, .queue-item-name, .pause-fighter-name, .matchup-name').forEach(el => {
+                el.style.display = show ? '' : 'none';
+            });
+        }
+
+        function toggleTokenVisibility() {
+            const input = document.getElementById('settingToken');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+        function openTokenHelper() { document.getElementById('tokenHelpModal').classList.add('active'); }
+        function closeTokenHelper() { document.getElementById('tokenHelpModal').classList.remove('active'); }
+
+        // ==========================================
+        // KEYBOARD SHORTCUTS
+        // ==========================================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { closeTokenHelper(); toggleSettings(false); return; }
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+            switch (e.key.toLowerCase()) {
+                case '1': if (isVoting) streamerVote(1); break;
+                case '2': if (isVoting) streamerVote(2); break;
+                case 'n': if (isVoting) endVoting(); else if (isPaused) skipPause(); break;
+                case ' ': if (isVoting) { e.preventDefault(); togglePause(); } break;
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>
